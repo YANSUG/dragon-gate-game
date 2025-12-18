@@ -159,7 +159,7 @@
 
 <script>
     // =========================================
-    // ✅ 已更新為 V24 正式合約地址
+    // 🔥 已更新為你的新合約地址
     const CONTRACT_ADDRESS = "0x6E7866bf3AB28420aA902143A9B6A36725cD965A"; 
     // =========================================
 
@@ -256,4 +256,295 @@
                 const label = labels[i] || i;
                 const count = counts[i];
                 const colorStyle = count <= 3 ? "color:#e74c3c" : "color:#2ecc71";
-                html += `<div class="counter-item"><div
+                html += `<div class="counter-item"><div class="counter-label">${label}</div><div class="counter-val" style="${colorStyle}">${count}</div></div>`;
+            }
+            document.getElementById("counterGrid").innerHTML = html;
+        } catch(e) { console.error(e); }
+    }
+
+    async function connectWallet() {
+        if (!window.ethereum) return alert("Please install MetaMask!");
+        try {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+            userAddress = await signer.getAddress(); 
+            const network = await provider.getNetwork();
+            if (network.chainId !== 338n && network.chainId !== 25n) return alert("Please switch to Cronos Mainnet (25) or Testnet (338)");
+
+            const btn = document.getElementById("connectBtn");
+            btn.innerHTML = "✅ " + userAddress.substring(0,6) + "...";
+            btn.disabled = true;
+            document.getElementById("walletAddress").innerText = userAddress;
+            document.getElementById("startBtn").disabled = false;
+
+            contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+            listenToEvents();
+            await updateGameInfo(); 
+            await updateUserBalance(userAddress); 
+            await checkGameState(userAddress);
+            document.getElementById("status").innerText = getText('status_ready');
+            startPolling();
+        } catch (e) { alert("Connect Error: " + e.message); }
+    }
+
+    function startPolling() {
+        const randomDelay = Math.floor(Math.random() * 2000 + 3000);
+        setTimeout(async () => {
+            if (contract && userAddress && !isModalOpen) {
+                const dot = document.getElementById("pingDot");
+                dot.classList.add("ping-active");
+                setTimeout(() => dot.classList.remove("ping-active"), 500);
+                await checkGameState(userAddress);
+                await updateGameInfo(); 
+                await updateUserBalance(userAddress); 
+            }
+            startPolling();
+        }, randomDelay);
+    }
+
+    async function updateGameInfo() {
+        if(!contract) return;
+        try {
+            const balance = await provider.getBalance(CONTRACT_ADDRESS);
+            const balanceEth = parseFloat(ethers.formatEther(balance));
+            document.getElementById("poolAmount").innerText = balanceEth.toFixed(2);
+            currentMaxBet = balanceEth / 4;
+            document.getElementById("maxBet").innerText = currentMaxBet.toFixed(2);
+
+            const deckStatus = await contract.getDeckStatus();
+            document.getElementById("cardsRemaining").innerText = deckStatus.remaining;
+            document.getElementById("shoeCount").innerText = deckStatus.currentShoe;
+            checkLimit(); 
+        } catch (e) {}
+    }
+
+    async function updateUserBalance(address) {
+        if (!provider || !address) return;
+        try {
+            const balance = await provider.getBalance(address);
+            const formatted = parseFloat(ethers.formatEther(balance)).toFixed(4); 
+            const label = getText('balance');
+            document.getElementById("walletBalance").innerText = `${label}: ${formatted} CRO`;
+        } catch (e) { console.error(e); }
+    }
+
+    function checkLimit() {
+        const inputVal = parseFloat(document.getElementById("betAmount").value);
+        const btn = document.getElementById("startBtn");
+        const container = document.querySelector('.container');
+        if (container.classList.contains("loading")) return;
+        if (inputVal > currentMaxBet) {
+            btn.disabled = true;
+            btn.innerText = getText('limit_msg');
+        } else if (contract) { 
+            btn.disabled = false;
+            btn.innerText = "▶️ " + getText('start');
+        }
+    }
+
+    async function checkGameState(address) {
+        if (isModalOpen) return; 
+        try {
+            const game = await contract.games(address);
+            if (game.state == 1) { 
+                currentC1 = game.card1;
+                currentC2 = game.card2;
+                document.getElementById("card1").innerText = currentC1;
+                document.getElementById("card2").innerText = currentC2;
+                document.getElementById("card3").innerText = "?";
+                document.getElementById("card3").classList.add("hidden");
+                toggleControls("game");
+                if (!document.querySelector('.container').classList.contains("loading")) {
+                   document.getElementById("status").innerText = getText('status_playing');
+                }
+            } else {
+                toggleControls("start");
+            }
+        } catch (e) {}
+    }
+
+    function toggleControls(mode) {
+        if (mode === "game") {
+            document.getElementById("controls").style.display = "none";
+            document.getElementById("gameControls").style.display = "block";
+        } else {
+            document.getElementById("controls").style.display = "block";
+            document.getElementById("gameControls").style.display = "none";
+        }
+    }
+
+    function setLoading(isLoading) {
+        const container = document.querySelector('.container');
+        if (isLoading) container.classList.add("loading");
+        else container.classList.remove("loading");
+    }
+
+    async function processReceipt(receipt) {
+        let gameStartedFound = false;
+        let gameEndedFound = false;
+        let c3_res = 0, result_res = "", payout_res = 0;
+
+        for (const log of receipt.logs) {
+            try {
+                const parsed = contract.interface.parseLog(log);
+                if (parsed.name === "GameStarted") {
+                    currentC1 = parsed.args.card1;
+                    currentC2 = parsed.args.card2;
+                    document.getElementById("card1").innerText = currentC1;
+                    document.getElementById("card2").innerText = currentC2;
+                    if (currentC1 == currentC2) caughtPairValue = currentC1; 
+                    gameStartedFound = true;
+                }
+            } catch (e) { }
+        }
+
+        for (const log of receipt.logs) {
+            try {
+                const parsed = contract.interface.parseLog(log);
+                if (parsed.name === "GameEnded") {
+                    const { card3, result, payout } = parsed.args;
+                    c3_res = card3;
+                    result_res = result;
+                    payout_res = payout;
+                    gameEndedFound = true;
+                }
+            } catch (e) { }
+        }
+
+        if (gameEndedFound) {
+            showResult(result_res, c3_res, payout_res);
+            return true;
+        }
+        return false;
+    }
+
+    async function startGame() {
+        try {
+            currentC1 = "?"; currentC2 = "?"; caughtPairValue = null;
+            const amount = document.getElementById("betAmount").value;
+            if (amount <= 0) return alert("Invalid Amount");
+            if (amount > currentMaxBet) return alert(getText('bet_too_high'));
+
+            setLoading(true);
+            document.getElementById("status").innerText = getText('status_dealing');
+            const tx = await contract.startGame({ value: ethers.parseEther(amount) });
+            const receipt = await tx.wait(); 
+            
+            const handled = await processReceipt(receipt);
+            setLoading(false);
+            
+            if (!handled && !isModalOpen) await checkGameState(userAddress);
+            updateUserBalance(userAddress); 
+            updateGameInfo();
+
+        } catch (error) {
+            console.error(error);
+            setLoading(false);
+            if(error.reason && error.reason.includes("Bet too high")) alert(getText('bet_too_high'));
+        }
+    }
+
+    async function shoot() {
+        try {
+            setLoading(true);
+            document.getElementById("status").innerText = getText('status_shooting');
+            const tx = await contract.shoot();
+            const receipt = await tx.wait();
+            await processReceipt(receipt);
+            setLoading(false);
+            updateUserBalance(userAddress);
+            updateGameInfo();
+        } catch (error) { setLoading(false); alert(error.message); }
+    }
+
+    async function fold() {
+        try {
+            setLoading(true);
+            document.getElementById("status").innerText = getText('status_folding');
+            const tx = await contract.fold();
+            const receipt = await tx.wait();
+            await processReceipt(receipt);
+            setLoading(false);
+            updateUserBalance(userAddress);
+            updateGameInfo();
+        } catch (error) { setLoading(false); alert(error.message); }
+    }
+
+    function showResult(result, c3, payout) {
+        if(isModalOpen) return; 
+        isModalOpen = true; 
+        setLoading(false);
+
+        const modal = document.getElementById("resultModal");
+        const title = document.getElementById("modalTitle");
+        const score = document.getElementById("modalPayout");
+        const wrapper = document.getElementById("resultCardsWrapper");
+        const card1 = document.getElementById("modalCard1");
+        const card3 = document.getElementById("modalCard3");
+        const card2 = document.getElementById("modalCard2");
+        const payoutEth = ethers.formatEther(payout);
+        
+        wrapper.classList.remove("fold-mode");
+        wrapper.classList.remove("highlight-shot");
+        card1.innerText = currentC1;
+        card2.innerText = currentC2;
+        card3.innerText = c3;
+
+        if (result === "WIN") {
+            title.innerText = getText('win'); title.style.color = "#2ecc71";
+            score.innerText = `+${payoutEth} CRO`; score.style.color = "#2ecc71";
+            wrapper.classList.add("highlight-shot"); 
+        } else if (result === "LOSE") {
+            title.innerText = getText('lose'); title.style.color = "#e74c3c";
+            score.innerText = getText('lost_all'); score.style.color = "#e74c3c";
+            wrapper.classList.add("highlight-shot");
+        } else if (result === "HIT POST") {
+            title.innerText = getText('hit_post'); title.style.color = "#e67e22";
+            score.innerText = getText('lost_all'); score.style.color = "#e67e22";
+            wrapper.classList.add("highlight-shot");
+        } else if (result === "BAD PAIR") {
+            title.innerText = getText('bad_pair'); title.style.color = "#c0392b";
+            score.innerText = getText('pair_lose'); score.style.color = "#c0392b";
+            card3.innerText = caughtPairValue ? caughtPairValue : currentC1; 
+        } else if (result === "FOLD") {
+            title.innerText = getText('folded'); title.style.color = "#bdc3c7";
+            score.innerText = `${getText('refund')} ${payoutEth} CRO`; score.style.color = "#2ecc71"; 
+            card3.innerText = "-";
+            wrapper.classList.add("fold-mode"); 
+        }
+        modal.classList.add("active");
+    }
+
+    function closeModal() {
+        isModalOpen = false; 
+        document.getElementById("resultModal").classList.remove("active");
+        document.getElementById("card1").innerText = "?"; 
+        document.getElementById("card2").innerText = "?";
+        document.getElementById("card3").innerText = "?"; 
+        document.getElementById("card3").classList.add("hidden");
+        document.getElementById("status").innerText = getText('status_ready');
+        toggleControls("start");
+        updateGameInfo(); 
+    }
+
+    function listenToEvents() {
+        contract.on("GameStarted", (player, c1, c2, bet) => {
+            if(player !== signer.address) return;
+            document.getElementById("card1").innerText = c1;
+            document.getElementById("card2").innerText = c2;
+            setLoading(false);
+        });
+        contract.on("GameEnded", (player, c3, result, payout) => {
+            if(player !== signer.address) return;
+            if(!isModalOpen) showResult(result, c3, payout);
+        });
+        contract.on("DeckShuffled", (ts, shoeId) => {
+            updateGameInfo();
+        });
+    }
+
+    updateUIText(); 
+</script>
+
+</body>
+</html>
