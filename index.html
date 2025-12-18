@@ -76,14 +76,17 @@
             padding: 15px;
             margin-bottom: 25px;
             display: grid;
-            gap: 8px;
+            gap: 10px;
             border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .pool-text {
-            font-size: 1.4em;
+        .pool-section {
+            background: var(--accent-gold);
+            color: #2d3748;
+            padding: 8px;
+            border-radius: 8px;
             font-weight: bold;
-            color: var(--accent-gold);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
 
         .info-row {
@@ -91,9 +94,10 @@
             justify-content: space-between;
             font-size: 0.9em;
             color: var(--text-sub);
-            padding: 4px 10px;
+            padding: 6px 10px;
             background: rgba(255,255,255,0.05);
             border-radius: 8px;
+            align-items: center;
         }
         .highlight-val { color: #63b3ed; font-weight: bold; }
 
@@ -106,10 +110,14 @@
             padding: 12px;
             border-radius: 12px;
             font-weight: bold;
+            border: none;
+            cursor: pointer;
             box-shadow: 0 4px 15px rgba(66, 153, 225, 0.4);
+            transition: 0.2s;
         }
-        .wallet-addr { font-size: 0.8em; color: var(--text-sub); margin-top: 5px; }
-        .wallet-bal { font-size: 0.9em; color: var(--accent-green); font-weight: bold; }
+        .btn-connect:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        .wallet-addr { font-size: 0.8em; color: var(--text-sub); margin-top: 8px; word-break: break-all; }
+        .wallet-bal { font-size: 0.9em; color: var(--accent-green); font-weight: bold; margin-top: 4px; }
 
         /* --- 撲克牌區 --- */
         .cards-area {
@@ -163,7 +171,7 @@
             margin-bottom: 15px;
             background: rgba(0,0,0,0.3);
             border-radius: 10px;
-            padding: 5px;
+            padding: 8px;
             width: fit-content;
             margin-left: auto;
             margin-right: auto;
@@ -181,11 +189,7 @@
         .input-bet:focus { outline: none; }
         .currency-label { padding-right: 15px; color: var(--text-sub); font-weight: bold; }
 
-        button {
-            border: none;
-            cursor: pointer;
-            transition: 0.2s;
-        }
+        button { border: none; cursor: pointer; transition: 0.2s; }
         button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
 
         .btn-action {
@@ -259,7 +263,6 @@
         .modal-card.side { width: 50px; height: 75px; font-size: 24px; opacity: 0.6; }
         .modal-card.main { width: 80px; height: 110px; font-size: 48px; z-index: 2; transition: 0.3s; }
         
-        /* 射門特效 */
         .highlight-shot .modal-card.main { 
             border-color: var(--accent-gold); 
             box-shadow: 0 0 30px rgba(246, 173, 85, 0.6); 
@@ -269,7 +272,7 @@
 
         .btn-close { 
             background: var(--panel-bg); border: 1px solid rgba(255,255,255,0.2); 
-            color: white; width: 100%; padding: 12px; border-radius: 10px; margin-top: 10px; 
+            color: white; width: 100%; padding: 12px; border-radius: 10px; margin-top: 10px; cursor: pointer;
         }
         .btn-close:hover { background: rgba(255,255,255,0.1); }
 
@@ -295,9 +298,8 @@
     <h1><span data-i18n="title">台灣射龍門</span> <span id="pingDot" class="ping-dot"></span></h1>
     
     <div class="dashboard">
-        <div>
-            <div style="font-size:0.8em; color:#a0aec0; margin-bottom:2px;"><span data-i18n="pool">目前獎池</span></div>
-            <div class="pool-text"><span id="poolAmount">--</span> CRO</div>
+        <div class="pool-section">
+            <span data-i18n="pool">獎池</span>: <span id="poolAmount">--</span> CRO
         </div>
         
         <div class="info-row">
@@ -385,8 +387,8 @@
 
 <script>
     // =========================================
-    // 🔥 請確認此為 V24 最新合約
-    const CONTRACT_ADDRESS = "0x6E7866bf3AB28420aA902143A9B6A36725cD965A"; 
+    // 🔥 已自動填入你的 DragonGateV25 遊戲合約地址
+    const CONTRACT_ADDRESS = "0x327dF512D610BEa520591b346e1F8C82E171ffEB"; 
     // =========================================
 
     const ABI = [
@@ -410,7 +412,6 @@
             warning: "博弈有風險，請量力而為。切勿過度投注，以免傾家蕩產。未滿18歲請勿遊玩。", play_again: "再來一局",
             rules_title: "📜 遊戲規則", close: "關閉", balance: "餘額", remain: "剩餘",
             counter_btn: "剩餘卡牌", counter_title: "📊 剩餘卡牌", counter_desc: "目前牌靴中剩餘的點數分佈 (3副牌)",
-            // 🔥 更新後的詳細規則 HTML
             rules_html: `
                 <div class="rule-item"><div class="rule-title">🎮 遊戲機制</div><p class="rule-desc">使用 3 副牌 (156張)。當牌數剩餘一半時，系統會自動洗牌。</p></div>
                 <div class="rule-item"><div class="rule-title">🔥 射門 (Shoot)</div><p class="rule-desc">第三張牌點數 <span style="color:#48bb78">介於前兩張之間</span> (不含相等) <br>➔ 贏得 <strong>2倍</strong> 賭金。</p></div>
@@ -492,7 +493,6 @@
             for(let i=1; i<=13; i++) {
                 const label = labels[i] || i;
                 const count = counts[i];
-                // 視覺提示：牌少變紅，牌多變綠
                 const colorClass = count <= 4 ? "val-low" : "val-high";
                 html += `<div class="counter-item"><div class="counter-label">${label}</div><div class="counter-val ${colorClass}">${count}</div></div>`;
             }
@@ -507,7 +507,7 @@
             signer = await provider.getSigner();
             userAddress = await signer.getAddress(); 
             const network = await provider.getNetwork();
-            // 支援主網 (25) 與測試網 (338)
+            // 支援 Cronos Mainnet (25) 與 Testnet (338)
             if (network.chainId !== 338n && network.chainId !== 25n) return alert("Please switch to Cronos Mainnet (25) or Testnet (338)");
 
             document.getElementById("connectBtn").style.display = "none";
@@ -542,7 +542,8 @@
     async function updateGameInfo() {
         if(!contract) return;
         try {
-            const balance = await provider.getBalance(CONTRACT_ADDRESS);
+            // 注意：這裡是呼叫遊戲合約的 getContractBalance，它會幫忙去查 Bankroll
+            const balance = await contract.getContractBalance(); 
             const balanceEth = parseFloat(ethers.formatEther(balance));
             document.getElementById("poolAmount").innerText = balanceEth.toFixed(2);
             currentMaxBet = balanceEth / 4;
@@ -552,7 +553,7 @@
             document.getElementById("cardsRemaining").innerText = deckStatus.remaining;
             document.getElementById("shoeCount").innerText = deckStatus.currentShoe;
             checkLimit(); 
-        } catch (e) {}
+        } catch (e) { console.error(e); }
     }
 
     async function updateUserBalance(address) {
@@ -785,4 +786,3 @@
 
 </body>
 </html>
-
