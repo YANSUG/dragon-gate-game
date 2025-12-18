@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taiwan Dragon Gate V22</title>
+    <title>Taiwan Dragon Gate V24</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     <style>
         body { background-color: #2c3e50; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; margin: 0; }
         .container { max-width: 500px; margin: 0 auto; background: #34495e; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); position: relative; }
         
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .lang-btn, .rules-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #ecf0f1; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.9em; transition: background 0.2s; }
-        .lang-btn:hover, .rules-btn:hover { background: rgba(255,255,255,0.2); }
+        .nav-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #ecf0f1; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 0.85em; transition: background 0.2s; margin-left: 5px; }
+        .nav-btn:hover { background: rgba(255,255,255,0.2); }
 
         h1 { color: #f1c40f; margin: 5px 0 15px 0; font-size: 28px; letter-spacing: 1px; }
         
@@ -20,7 +20,6 @@
         .limit-info { color: #bdc3c7; font-size: 0.9em; margin-bottom: 5px; }
 
         .cards-area { display: flex; justify-content: center; gap: 15px; margin: 25px 0; height: 140px; }
-        /* 主畫面卡牌樣式 */
         .card { width: 90px; height: 130px; background: #ecf0f1; color: #2c3e50; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 42px; font-weight: bold; border: 1px solid #bdc3c7; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .card.hidden { background: #7f8c8d; color: #95a5a6; border-color: #636e72; }
         
@@ -44,30 +43,15 @@
         .modal-title { font-size: 32px; margin: 0 0 10px 0; font-weight: 800; text-transform: uppercase; }
         .modal-score { font-size: 18px; color: #bdc3c7; margin-bottom: 20px; }
         
-        /* 🔥 V22 新增：彈窗內三張牌的容器 */
         .modal-cards-wrapper { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 20px auto; }
-        
-        /* 彈窗內卡牌通用樣式 */
         .modal-card { background: white; color: black; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid #34495e; }
-        
-        /* 兩側門柱小牌 */
         .modal-card.side { width: 60px; height: 90px; font-size: 32px; opacity: 0.7; }
-        
-        /* 中間射門大牌 */
         .modal-card.main { width: 80px; height: 110px; font-size: 50px; z-index: 2; transition: all 0.3s; }
         
-        /* 🔥 V22 新增：射門特效 (高亮) */
-        .highlight-shot .modal-card.main {
-            border-color: #f1c40f; /* 金色邊框 */
-            box-shadow: 0 0 25px rgba(241, 196, 15, 0.8); /* 金色光暈 */
-            transform: scale(1.15); /* 放大 */
-        }
-
-        /* 放棄時隱藏兩側牌 */
+        .highlight-shot .modal-card.main { border-color: #f1c40f; box-shadow: 0 0 25px rgba(241, 196, 15, 0.8); transform: scale(1.15); }
         .fold-mode .modal-card.side { display: none; }
 
         .btn-close { background: #3498db; color: white; width: 100%; margin: 20px 0 0 0; }
-        
         .warning-footer { margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
         .warning-text { color: #e74c3c; font-size: 0.85em; line-height: 1.5; font-weight: bold; }
 
@@ -75,29 +59,42 @@
         .rules-section:last-child { border-bottom: none; }
         .rules-title { color: #f1c40f; font-weight: bold; font-size: 1.1em; margin-bottom: 5px; }
         .rules-desc { color: #bdc3c7; font-size: 0.95em; line-height: 1.5; margin: 0; }
+
+        .counter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .counter-item { background: rgba(0,0,0,0.2); padding: 5px; border-radius: 5px; font-size: 0.9em; }
+        .counter-val { font-weight: bold; color: #2ecc71; font-size: 1.1em; }
+        .counter-label { color: #bdc3c7; font-size: 0.8em; }
         
         .loading { opacity: 0.6; pointer-events: none; }
         .ping-dot { width: 6px; height: 6px; background-color: #2ecc71; border-radius: 50%; display: inline-block; margin-left: 8px; opacity: 0; transition: opacity 0.2s; vertical-align: middle; }
         .ping-active { opacity: 1; }
         .balance-info { font-size: 0.9em; color: #2ecc71; margin-top: 5px; font-weight: bold; }
+        .deck-info { color: #3498db; font-weight: bold; margin-bottom: 5px; font-size: 0.95em; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="top-bar">
-        <button class="rules-btn" onclick="openRules()"><span data-i18n="rules">遊戲規則</span></button>
-        <button class="lang-btn" onclick="toggleLanguage()">EN / 中文</button>
+        <div>
+            <button class="nav-btn" onclick="openRules()"><span data-i18n="rules">規則</span></button>
+            <button class="nav-btn" onclick="openCounter()">📊 <span data-i18n="counter_btn">記牌器</span></button>
+        </div>
+        <button class="nav-btn" onclick="toggleLanguage()">EN / 中文</button>
     </div>
 
     <h1><span data-i18n="title">台灣射龍門</span> <span id="pingDot" class="ping-dot"></span></h1>
     
     <div class="pool-box"><span data-i18n="pool">獎池</span>: <span id="poolAmount">Loading...</span> CRO</div>
-    <br>
-    <div class="limit-info"><span data-i18n="max_bet">最高投注</span>: <span id="maxBet">Loading...</span> CRO</div>
-    <div class="note-text"><span data-i18n="note">註記：最大下注額為獎池的 1/4</span></div>
+    
+    <div class="deck-info">
+        🎴 Shoe #<span id="shoeCount">1</span> | 
+        <span data-i18n="remain">剩餘</span>: <span id="cardsRemaining">--</span>/156
+    </div>
 
-    <br><br>
+    <div class="limit-info"><span data-i18n="max_bet">最高投注</span>: <span id="maxBet">Loading...</span> CRO</div>
+    
+    <br>
     <button id="connectBtn" class="btn-connect" onclick="connectWallet()"><span data-i18n="connect">連接錢包</span></button>
     <p id="walletAddress" style="font-size: 0.8em; color: #bdc3c7; margin-top:5px;"></p>
     <p id="walletBalance" class="balance-info"></p>
@@ -134,28 +131,36 @@
     <div class="modal-content">
         <div class="modal-title" id="modalTitle">WIN</div>
         <div class="modal-score" id="modalPayout">+2.0 CRO</div>
-        
         <div class="modal-cards-wrapper" id="resultCardsWrapper">
             <div class="modal-card side" id="modalCard1">?</div>
             <div class="modal-card main" id="modalCard3">?</div>
             <div class="modal-card side" id="modalCard2">?</div>
         </div>
-        
         <button class="btn-close" onclick="closeModal()"><span data-i18n="play_again">再來一局</span></button>
     </div>
 </div>
 
 <div class="modal-overlay" id="rulesModal">
     <div class="modal-content" style="text-align: left;">
-        <h2 style="text-align: center; color: #f1c40f; margin-top: 0; margin-bottom: 20px;" data-i18n="rules_title">📜 遊戲規則｜射龍門</h2>
+        <h2 style="text-align: center; color: #f1c40f; margin-top: 0; margin-bottom: 20px;" data-i18n="rules_title">📜 遊戲規則</h2>
         <div id="rulesContent"></div>
         <button class="btn-close" onclick="closeRules()"><span data-i18n="close">關閉</span></button>
     </div>
 </div>
 
+<div class="modal-overlay" id="counterModal">
+    <div class="modal-content">
+        <h2 style="color: #3498db; margin:0;" data-i18n="counter_title">📊 記牌器</h2>
+        <p style="font-size:0.85em; color:#bdc3c7; margin-bottom:15px;" data-i18n="counter_desc">顯示牌靴中剩餘的牌數</p>
+        <div id="counterGrid" class="counter-grid">Loading...</div>
+        <button class="btn-close" onclick="closeCounter()"><span data-i18n="close">關閉</span></button>
+    </div>
+</div>
+
 <script>
     // =========================================
-    const CONTRACT_ADDRESS = "0x84b31049Eb8CB25cF86d360534e383d8b0e10924"; 
+    // ✅ 已更新為 V24 正式合約地址
+    const CONTRACT_ADDRESS = "0x6E7866bf3AB28420aA902143A9B6A36725cD965A"; 
     // =========================================
 
     const ABI = [
@@ -164,46 +169,37 @@
         "function fold() external",
         "function games(address) view returns (uint8 state, uint256 card1, uint256 card2, uint256 betAmount)",
         "function getContractBalance() external view returns (uint256)",
+        "function getRemainingCards() external view returns (uint256[] memory)",
+        "function getDeckStatus() external view returns (uint256 remaining, uint256 total, uint256 currentShoe)",
         "event GameStarted(address indexed player, uint256 card1, uint256 card2, uint256 betAmount)",
-        "event GameEnded(address indexed player, uint256 card3, string result, uint256 payout)"
+        "event GameEnded(address indexed player, uint256 card3, string result, uint256 payout)",
+        "event DeckShuffled(uint256 timestamp, uint256 newShoeId)"
     ];
 
     const translations = {
         zh: {
-            title: "台灣射龍門",
-            rules: "遊戲規則", pool: "獎池", max_bet: "最高投注", note: "註記：最大下注額為獎池的 1/4", connect: "連接錢包",
+            title: "台灣射龍門", rules: "規則", pool: "獎池", max_bet: "最高投注", note: "註記：最大下注額為獎池的 1/4", connect: "連接錢包",
             status_wait: "請先連接錢包", status_ready: "準備就緒", status_dealing: "發牌中...", status_playing: "遊戲進行中",
             status_shooting: "射門中...", status_folding: "放棄中...", start: "開始遊戲", shoot: "射門 (贏雙倍)", fold: "放棄 (退 50%)",
             warning: "博弈有風險，請量力而為。切勿過度投注，以免傾家蕩產。未滿18歲請勿遊玩。", play_again: "再來一局",
-            rules_title: "📜 遊戲規則｜射龍門", close: "關閉", balance: "餘額",
-            rules_html: `
-                <div class="rules-section"><div class="rules-title">遊戲開始</div><p class="rules-desc">系統先發 兩張牌（點數 1–13）。</p></div>
-                <div class="rules-section"><div class="rules-title">射門</div><p class="rules-desc">第三張牌點數 介於前兩張牌之間（不含相等）<br>➔ <span style="color:#2ecc71">中獎，獲得 2 倍</span>。</p></div>
-                <div class="rules-section"><div class="rules-title">射偏</div><p class="rules-desc">第三張牌點數 不在前兩張牌範圍內<br>➔ <span style="color:#e74c3c">失去全部賭金</span>。</p></div>
-                <div class="rules-section"><div class="rules-title">撞柱</div><p class="rules-desc">第三張牌點數 等於前兩張牌任一張<br>➔ <span style="color:#e67e22">通殺（本局直接輸）</span>。</p></div>
-                <div class="rules-section"><div class="rules-title">放棄</div><p class="rules-desc">開第三張牌前，可選擇放棄<br>➔ <span style="color:#3498db">退回 50% 賭金</span>。</p></div>
-                <div class="rules-section"><div class="rules-title">王牌守門員</div><p class="rules-desc">開局兩張牌 點數相同（對子）<br>➔ <span style="color:#c0392b">直接判輸，且不可放棄</span>。</p></div>
-                <div class="rules-section"><div class="rules-title">限紅</div><p class="rules-desc">單局最大投注額為目前獎池的 1/4。</p></div>
-            `,
+            rules_title: "📜 遊戲規則", close: "關閉", balance: "餘額", remain: "剩餘",
+            counter_btn: "記牌器", counter_title: "📊 記牌器", counter_desc: "目前牌靴中剩餘的牌數 (共3副)",
+            rules_html: `<div class="rules-section"><div class="rules-title">遊戲機制</div><p class="rules-desc">使用 3 副牌 (156張)，剩餘一半時自動洗牌。</p></div>
+                         <div class="rules-section"><div class="rules-title">射門</div><p class="rules-desc">第三張牌 介於前兩張之間 ➔ 贏 2 倍。</p></div>
+                         <div class="rules-section"><div class="rules-title">撞柱</div><p class="rules-desc">第三張牌 等於前兩張任一張 ➔ 通殺。</p></div>`,
             win: "WINNER", lose: "YOU LOSE", hit_post: "HIT POST", bad_pair: "BAD PAIR", folded: "FOLDED",
             refund: "已退還", lost_all: "失去本金", pair_lose: "守門員通殺", limit_msg: "金額過高", bet_too_high: "投注額過高"
         },
         en: {
-            title: "Soccer Shootout",
-            rules: "Rules", pool: "Pool", max_bet: "Max Bet", note: "Note: Max bet is 1/4 of pool", connect: "Connect Wallet",
-            status_wait: "Connect Wallet First", status_ready: "Ready", status_dealing: "Dealing...", status_playing: "In Progress",
+            title: "Soccer Shootout", rules: "Rules", pool: "Pool", max_bet: "Max Bet", note: "Note: Max bet is 1/4 of pool", connect: "Connect Wallet",
+            status_wait: "Connect Wallet", status_ready: "Ready", status_dealing: "Dealing...", status_playing: "In Progress",
             status_shooting: "Shooting...", status_folding: "Folding...", start: "Kick Off", shoot: "Shoot (Win 2x)", fold: "Fold (Refund 50%)",
-            warning: "Gambling involves risk. Please bet responsibly. Do not bet more than you can afford to lose. 18+ only.", play_again: "Play Again",
-            rules_title: "📜 Rules | Soccer Shootout", close: "Close", balance: "Balance",
-            rules_html: `
-                <div class="rules-section"><div class="rules-title">Kick Off</div><p class="rules-desc">System deals two cards (1-13).</p></div>
-                <div class="rules-section"><div class="rules-title">Goal (Shoot)</div><p class="rules-desc">3rd card is strictly BETWEEN the first two.<br>➔ <span style="color:#2ecc71">Win 2x Bet</span>.</p></div>
-                <div class="rules-section"><div class="rules-title">Miss</div><p class="rules-desc">3rd card is OUTSIDE the range.<br>➔ <span style="color:#e74c3c">Lose Bet</span>.</p></div>
-                <div class="rules-section"><div class="rules-title">Hit Post</div><p class="rules-desc">3rd card EQUALS either card.<br>➔ <span style="color:#e67e22">Instant Loss (House Wins)</span>.</p></div>
-                <div class="rules-section"><div class="rules-title">Fold</div><p class="rules-desc">Fold before the 3rd card.<br>➔ <span style="color:#3498db">Refund 50% Bet</span>.</p></div>
-                <div class="rules-section"><div class="rules-title">Goalkeeper (Bad Pair)</div><p class="rules-desc">First two cards are a PAIR.<br>➔ <span style="color:#c0392b">Instant Loss (Cannot Fold)</span>.</p></div>
-                <div class="rules-section"><div class="rules-title">Limit</div><p class="rules-desc">Max bet is 1/4 of current pool.</p></div>
-            `,
+            warning: "Gambling involves risk. Bet responsibly. 18+ only.", play_again: "Play Again",
+            rules_title: "📜 Rules", close: "Close", balance: "Balance", remain: "Left",
+            counter_btn: "Card Counter", counter_title: "📊 Card Counter", counter_desc: "Remaining cards in the shoe (3 Decks)",
+            rules_html: `<div class="rules-section"><div class="rules-title">Deck</div><p class="rules-desc">3 Decks (156 cards). Reshuffles at 50%.</p></div>
+                         <div class="rules-section"><div class="rules-title">Goal</div><p class="rules-desc">3rd card BETWEEN first two ➔ Win 2x.</p></div>
+                         <div class="rules-section"><div class="rules-title">Hit Post</div><p class="rules-desc">3rd card EQUALS either card ➔ Loss.</p></div>`,
             win: "GOAL!", lose: "MISSED", hit_post: "HIT POST", bad_pair: "BLOCKED", folded: "FOLDED",
             refund: "Refunded", lost_all: "Lost Bet", pair_lose: "Goalkeeper Blocked", limit_msg: "Too High", bet_too_high: "Bet Too High"
         }
@@ -214,10 +210,8 @@
     let currentMaxBet = 0;
     let userAddress = ""; 
     let isModalOpen = false; 
-    
-    // 🔥 V22 新增：暫存當局的門柱牌
-    let currentC1 = "?";
-    let currentC2 = "?";
+    let currentC1 = "?", currentC2 = "?";
+    let caughtPairValue = null;
 
     function toggleLanguage() {
         currentLang = (currentLang === 'zh') ? 'en' : 'zh';
@@ -238,286 +232,28 @@
     function getText(key) { return translations[currentLang][key]; }
     function openRules() { document.getElementById('rulesModal').classList.add('active'); }
     function closeRules() { document.getElementById('rulesModal').classList.remove('active'); }
-
-    async function connectWallet() {
-        if (!window.ethereum) return alert("Please install MetaMask!");
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-            userAddress = await signer.getAddress(); 
-            const network = await provider.getNetwork();
-            if (network.chainId !== 338n) return alert("Wrong Network! Switch to Cronos Testnet (338)");
-
-            const btn = document.getElementById("connectBtn");
-            btn.innerHTML = "✅ " + userAddress.substring(0,6) + "...";
-            btn.disabled = true;
-            document.getElementById("walletAddress").innerText = userAddress;
-            document.getElementById("startBtn").disabled = false;
-
-            contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-            listenToEvents();
-            await updatePoolBalance();
-            await updateUserBalance(userAddress); 
-            await checkGameState(userAddress);
-            document.getElementById("status").innerText = getText('status_ready');
-            startPolling();
-        } catch (e) { alert("Connect Error: " + e.message); }
+    
+    async function openCounter() { 
+        document.getElementById('counterModal').classList.add('active'); 
+        await updateCounterData(); 
     }
+    function closeCounter() { document.getElementById('counterModal').classList.remove('active'); }
 
-    function startPolling() {
-        const randomDelay = Math.floor(Math.random() * 2000 + 3000);
-        setTimeout(async () => {
-            if (contract && userAddress && !isModalOpen) {
-                const dot = document.getElementById("pingDot");
-                dot.classList.add("ping-active");
-                setTimeout(() => dot.classList.remove("ping-active"), 500);
-                await checkGameState(userAddress);
-                await updateUserBalance(userAddress); 
-            }
-            startPolling();
-        }, randomDelay);
-    }
-
-    async function updatePoolBalance() {
+    async function updateCounterData() {
         if(!contract) return;
         try {
-            const balance = await provider.getBalance(CONTRACT_ADDRESS);
-            const balanceEth = parseFloat(ethers.formatEther(balance));
-            document.getElementById("poolAmount").innerText = balanceEth.toFixed(2);
-            currentMaxBet = balanceEth / 4;
-            document.getElementById("maxBet").innerText = currentMaxBet.toFixed(2);
-            checkLimit(); 
-        } catch (e) {}
-    }
-
-    async function updateUserBalance(address) {
-        if (!provider || !address) return;
-        try {
-            const balance = await provider.getBalance(address);
-            const formatted = parseFloat(ethers.formatEther(balance)).toFixed(4); 
-            const label = getText('balance');
-            document.getElementById("walletBalance").innerText = `${label}: ${formatted} CRO`;
-        } catch (e) { console.error(e); }
-    }
-
-    function checkLimit() {
-        const inputVal = parseFloat(document.getElementById("betAmount").value);
-        const btn = document.getElementById("startBtn");
-        const container = document.querySelector('.container');
-        if (container.classList.contains("loading")) return;
-        if (inputVal > currentMaxBet) {
-            btn.disabled = true;
-            btn.innerText = getText('limit_msg');
-        } else if (contract) { 
-            btn.disabled = false;
-            btn.innerText = "▶️ " + getText('start');
-        }
-    }
-
-    async function checkGameState(address) {
-        if (isModalOpen) return; 
-        try {
-            const game = await contract.games(address);
-            if (game.state == 1) { 
-                currentC1 = game.card1; // 🔥 暫存牌面
-                currentC2 = game.card2;
-                document.getElementById("card1").innerText = currentC1;
-                document.getElementById("card2").innerText = currentC2;
-                document.getElementById("card3").innerText = "?";
-                document.getElementById("card3").classList.add("hidden");
-                toggleControls("game");
-                if (!document.querySelector('.container').classList.contains("loading")) {
-                   document.getElementById("status").innerText = getText('status_playing');
-                }
-            } else {
-                toggleControls("start");
+            document.getElementById("counterGrid").innerHTML = "Loading...";
+            const cards = await contract.getRemainingCards();
+            const counts = {};
+            for(let i=1; i<=13; i++) counts[i] = 0;
+            for(const card of cards) {
+                const val = Number(card);
+                if(counts[val] !== undefined) counts[val]++;
             }
-            updatePoolBalance();
-        } catch (e) {}
-    }
-
-    function toggleControls(mode) {
-        if (mode === "game") {
-            document.getElementById("controls").style.display = "none";
-            document.getElementById("gameControls").style.display = "block";
-        } else {
-            document.getElementById("controls").style.display = "block";
-            document.getElementById("gameControls").style.display = "none";
-        }
-    }
-
-    function setLoading(isLoading) {
-        const container = document.querySelector('.container');
-        if (isLoading) container.classList.add("loading");
-        else container.classList.remove("loading");
-    }
-
-    async function processReceipt(receipt) {
-        let gameStartedFound = false;
-        let gameEndedFound = false;
-        let c3_res = 0, result_res = "", payout_res = 0;
-
-        for (const log of receipt.logs) {
-            try {
-                const parsed = contract.interface.parseLog(log);
-                if (parsed.name === "GameStarted") {
-                    currentC1 = parsed.args.card1; // 🔥 更新暫存
-                    currentC2 = parsed.args.card2;
-                    document.getElementById("card1").innerText = currentC1;
-                    document.getElementById("card2").innerText = currentC2;
-                    gameStartedFound = true;
-                }
-            } catch (e) { }
-        }
-
-        for (const log of receipt.logs) {
-            try {
-                const parsed = contract.interface.parseLog(log);
-                if (parsed.name === "GameEnded") {
-                    const { card3, result, payout } = parsed.args;
-                    c3_res = card3;
-                    result_res = result;
-                    payout_res = payout;
-                    gameEndedFound = true;
-                }
-            } catch (e) { }
-        }
-
-        if (gameEndedFound) {
-            showResult(result_res, c3_res, payout_res);
-            return true;
-        }
-        return false;
-    }
-
-    async function startGame() {
-        try {
-            currentC1 = "?"; currentC2 = "?"; // 重置
-            const amount = document.getElementById("betAmount").value;
-            if (amount <= 0) return alert("Invalid Amount");
-            if (amount > currentMaxBet) return alert(getText('bet_too_high'));
-
-            setLoading(true);
-            document.getElementById("status").innerText = getText('status_dealing');
-            const tx = await contract.startGame({ value: ethers.parseEther(amount) });
-            const receipt = await tx.wait(); 
-            
-            const handled = await processReceipt(receipt);
-            setLoading(false);
-            
-            if (!handled && !isModalOpen) await checkGameState(userAddress);
-            updateUserBalance(userAddress); 
-
-        } catch (error) {
-            console.error(error);
-            setLoading(false);
-            if(error.reason && error.reason.includes("Bet too high")) alert(getText('bet_too_high'));
-        }
-    }
-
-    async function shoot() {
-        try {
-            setLoading(true);
-            document.getElementById("status").innerText = getText('status_shooting');
-            const tx = await contract.shoot();
-            const receipt = await tx.wait();
-            await processReceipt(receipt);
-            setLoading(false);
-            updateUserBalance(userAddress);
-        } catch (error) { setLoading(false); alert(error.message); }
-    }
-
-    async function fold() {
-        try {
-            setLoading(true);
-            document.getElementById("status").innerText = getText('status_folding');
-            const tx = await contract.fold();
-            const receipt = await tx.wait();
-            await processReceipt(receipt);
-            setLoading(false);
-            updateUserBalance(userAddress);
-        } catch (error) { setLoading(false); alert(error.message); }
-    }
-
-    function showResult(result, c3, payout) {
-        if(isModalOpen) return; 
-        isModalOpen = true; 
-        setLoading(false);
-
-        const modal = document.getElementById("resultModal");
-        const title = document.getElementById("modalTitle");
-        const score = document.getElementById("modalPayout");
-        
-        // 🔥 V22：取得彈窗內的卡牌元素
-        const wrapper = document.getElementById("resultCardsWrapper");
-        const card1 = document.getElementById("modalCard1");
-        const card3 = document.getElementById("modalCard3");
-        const card2 = document.getElementById("modalCard2");
-        
-        const payoutEth = ethers.formatEther(payout);
-        
-        // 預設狀態
-        wrapper.classList.remove("fold-mode");
-        wrapper.classList.remove("highlight-shot");
-        card1.innerText = currentC1;
-        card2.innerText = currentC2;
-        card3.innerText = c3;
-
-        if (result === "WIN") {
-            title.innerText = getText('win'); title.style.color = "#2ecc71";
-            score.innerText = `+${payoutEth} CRO`; score.style.color = "#2ecc71";
-            wrapper.classList.add("highlight-shot"); // 🔥 加入射門特效
-        } else if (result === "LOSE") {
-            title.innerText = getText('lose'); title.style.color = "#e74c3c";
-            score.innerText = getText('lost_all'); score.style.color = "#e74c3c";
-            wrapper.classList.add("highlight-shot");
-        } else if (result === "HIT POST") {
-            title.innerText = getText('hit_post'); title.style.color = "#e67e22";
-            score.innerText = getText('lost_all'); score.style.color = "#e67e22";
-            wrapper.classList.add("highlight-shot");
-        } else if (result === "BAD PAIR") {
-            title.innerText = getText('bad_pair'); title.style.color = "#c0392b";
-            score.innerText = getText('pair_lose'); score.style.color = "#c0392b";
-            // 對子通殺時，中間顯示一樣的牌
-            card3.innerText = currentC1; 
-        } else if (result === "FOLD") {
-            title.innerText = getText('folded'); title.style.color = "#bdc3c7";
-            score.innerText = `${getText('refund')} ${payoutEth} CRO`; score.style.color = "#2ecc71"; 
-            card3.innerText = "-";
-            wrapper.classList.add("fold-mode"); // 🔥 放棄模式：隱藏兩側牌
-        }
-        modal.classList.add("active");
-    }
-
-    function closeModal() {
-        isModalOpen = false; 
-        document.getElementById("resultModal").classList.remove("active");
-        
-        document.getElementById("card1").innerText = "?"; 
-        document.getElementById("card2").innerText = "?";
-        document.getElementById("card3").innerText = "?"; 
-        document.getElementById("card3").classList.add("hidden");
-        document.getElementById("status").innerText = getText('status_ready');
-        
-        toggleControls("start");
-        updatePoolBalance(); 
-    }
-
-    function listenToEvents() {
-        contract.on("GameStarted", (player, c1, c2, bet) => {
-            if(player !== signer.address) return;
-            document.getElementById("card1").innerText = c1;
-            document.getElementById("card2").innerText = c2;
-            setLoading(false);
-        });
-        contract.on("GameEnded", (player, c3, result, payout) => {
-            if(player !== signer.address) return;
-            if(!isModalOpen) showResult(result, c3, payout);
-        });
-    }
-
-    updateUIText(); 
-</script>
-
-</body>
-</html>
+            let html = "";
+            const labels = {1:"A", 11:"J", 12:"Q", 13:"K"};
+            for(let i=1; i<=13; i++) {
+                const label = labels[i] || i;
+                const count = counts[i];
+                const colorStyle = count <= 3 ? "color:#e74c3c" : "color:#2ecc71";
+                html += `<div class="counter-item"><div
