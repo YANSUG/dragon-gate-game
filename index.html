@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taiwan Dragon Gate V20</title>
+    <title>Taiwan Dragon Gate V22</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     <style>
         body { background-color: #2c3e50; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; margin: 0; }
@@ -20,6 +20,7 @@
         .limit-info { color: #bdc3c7; font-size: 0.9em; margin-bottom: 5px; }
 
         .cards-area { display: flex; justify-content: center; gap: 15px; margin: 25px 0; height: 140px; }
+        /* 主畫面卡牌樣式 */
         .card { width: 90px; height: 130px; background: #ecf0f1; color: #2c3e50; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 42px; font-weight: bold; border: 1px solid #bdc3c7; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .card.hidden { background: #7f8c8d; color: #95a5a6; border-color: #636e72; }
         
@@ -37,22 +38,39 @@
         /* 彈窗樣式 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal-overlay.active { opacity: 1; pointer-events: all; }
-        .modal-content { background: #34495e; padding: 30px; border-radius: 10px; text-align: center; border: 1px solid #7f8c8d; width: 85%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); transform: scale(0.95); transition: transform 0.3s; max-height: 85vh; overflow-y: auto; }
+        .modal-content { background: #34495e; padding: 30px; border-radius: 10px; text-align: center; border: 1px solid #7f8c8d; width: 90%; max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); transform: scale(0.95); transition: transform 0.3s; max-height: 85vh; overflow-y: auto; }
         .modal-overlay.active .modal-content { transform: scale(1); }
         
         .modal-title { font-size: 32px; margin: 0 0 10px 0; font-weight: 800; text-transform: uppercase; }
         .modal-score { font-size: 18px; color: #bdc3c7; margin-bottom: 20px; }
         
-        .result-card-container { margin: 20px auto; display: flex; flex-direction: column; align-items: center; }
-        .modal-card { font-size: 60px; font-weight: bold; background: white; color: black; width: 80px; height: 110px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 4px solid #34495e; }
-        .result-label { color: #f1c40f; margin-bottom: 10px; font-size: 14px; font-weight: bold; letter-spacing: 1px; }
+        /* 🔥 V22 新增：彈窗內三張牌的容器 */
+        .modal-cards-wrapper { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 20px auto; }
+        
+        /* 彈窗內卡牌通用樣式 */
+        .modal-card { background: white; color: black; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid #34495e; }
+        
+        /* 兩側門柱小牌 */
+        .modal-card.side { width: 60px; height: 90px; font-size: 32px; opacity: 0.7; }
+        
+        /* 中間射門大牌 */
+        .modal-card.main { width: 80px; height: 110px; font-size: 50px; z-index: 2; transition: all 0.3s; }
+        
+        /* 🔥 V22 新增：射門特效 (高亮) */
+        .highlight-shot .modal-card.main {
+            border-color: #f1c40f; /* 金色邊框 */
+            box-shadow: 0 0 25px rgba(241, 196, 15, 0.8); /* 金色光暈 */
+            transform: scale(1.15); /* 放大 */
+        }
+
+        /* 放棄時隱藏兩側牌 */
+        .fold-mode .modal-card.side { display: none; }
 
         .btn-close { background: #3498db; color: white; width: 100%; margin: 20px 0 0 0; }
         
         .warning-footer { margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
         .warning-text { color: #e74c3c; font-size: 0.85em; line-height: 1.5; font-weight: bold; }
 
-        /* 規則列表樣式 */
         .rules-section { text-align: left; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
         .rules-section:last-child { border-bottom: none; }
         .rules-title { color: #f1c40f; font-weight: bold; font-size: 1.1em; margin-bottom: 5px; }
@@ -61,8 +79,6 @@
         .loading { opacity: 0.6; pointer-events: none; }
         .ping-dot { width: 6px; height: 6px; background-color: #2ecc71; border-radius: 50%; display: inline-block; margin-left: 8px; opacity: 0; transition: opacity 0.2s; vertical-align: middle; }
         .ping-active { opacity: 1; }
-        
-        /* 玩家餘額樣式 */
         .balance-info { font-size: 0.9em; color: #2ecc71; margin-top: 5px; font-weight: bold; }
     </style>
 </head>
@@ -119,9 +135,10 @@
         <div class="modal-title" id="modalTitle">WIN</div>
         <div class="modal-score" id="modalPayout">+2.0 CRO</div>
         
-        <div class="result-card-container">
-            <div class="result-label" data-i18n="result_card">結果</div>
-            <div class="modal-card" id="modalCardVal">?</div>
+        <div class="modal-cards-wrapper" id="resultCardsWrapper">
+            <div class="modal-card side" id="modalCard1">?</div>
+            <div class="modal-card main" id="modalCard3">?</div>
+            <div class="modal-card side" id="modalCard2">?</div>
         </div>
         
         <button class="btn-close" onclick="closeModal()"><span data-i18n="play_again">再來一局</span></button>
@@ -131,10 +148,7 @@
 <div class="modal-overlay" id="rulesModal">
     <div class="modal-content" style="text-align: left;">
         <h2 style="text-align: center; color: #f1c40f; margin-top: 0; margin-bottom: 20px;" data-i18n="rules_title">📜 遊戲規則｜射龍門</h2>
-        
-        <div id="rulesContent">
-            </div>
-
+        <div id="rulesContent"></div>
         <button class="btn-close" onclick="closeRules()"><span data-i18n="close">關閉</span></button>
     </div>
 </div>
@@ -160,38 +174,16 @@
             rules: "遊戲規則", pool: "獎池", max_bet: "最高投注", note: "註記：最大下注額為獎池的 1/4", connect: "連接錢包",
             status_wait: "請先連接錢包", status_ready: "準備就緒", status_dealing: "發牌中...", status_playing: "遊戲進行中",
             status_shooting: "射門中...", status_folding: "放棄中...", start: "開始遊戲", shoot: "射門 (贏雙倍)", fold: "放棄 (退 50%)",
-            warning: "博弈有風險，請量力而為。切勿過度投注，以免傾家蕩產。未滿18歲請勿遊玩。", result_card: "射門結果", play_again: "再來一局",
-            rules_title: "📜 遊戲規則｜射龍門", close: "關閉",
-            balance: "餘額",
+            warning: "博弈有風險，請量力而為。切勿過度投注，以免傾家蕩產。未滿18歲請勿遊玩。", play_again: "再來一局",
+            rules_title: "📜 遊戲規則｜射龍門", close: "關閉", balance: "餘額",
             rules_html: `
-                <div class="rules-section">
-                    <div class="rules-title">遊戲開始</div>
-                    <p class="rules-desc">系統先發 兩張牌（點數 1–13）。</p>
-                </div>
-                <div class="rules-section">
-                    <div class="rules-title">射門</div>
-                    <p class="rules-desc">第三張牌點數 介於前兩張牌之間（不含相等）<br>➔ <span style="color:#2ecc71">中獎，獲得 2 倍</span>。</p>
-                </div>
-                <div class="rules-section">
-                    <div class="rules-title">射偏</div>
-                    <p class="rules-desc">第三張牌點數 不在前兩張牌範圍內<br>➔ <span style="color:#e74c3c">失去全部賭金</span>。</p>
-                </div>
-                <div class="rules-section">
-                    <div class="rules-title">撞柱</div>
-                    <p class="rules-desc">第三張牌點數 等於前兩張牌任一張<br>➔ <span style="color:#e67e22">通殺（本局直接輸）</span>。</p>
-                </div>
-                <div class="rules-section">
-                    <div class="rules-title">放棄</div>
-                    <p class="rules-desc">開第三張牌前，可選擇放棄<br>➔ <span style="color:#3498db">退回 50% 賭金</span>。</p>
-                </div>
-                <div class="rules-section">
-                    <div class="rules-title">王牌守門員</div>
-                    <p class="rules-desc">開局兩張牌 點數相同（對子）<br>➔ <span style="color:#c0392b">直接判輸，且不可放棄</span>。</p>
-                </div>
-                <div class="rules-section">
-                    <div class="rules-title">限紅</div>
-                    <p class="rules-desc">單局最大投注額為目前獎池的 1/4。</p>
-                </div>
+                <div class="rules-section"><div class="rules-title">遊戲開始</div><p class="rules-desc">系統先發 兩張牌（點數 1–13）。</p></div>
+                <div class="rules-section"><div class="rules-title">射門</div><p class="rules-desc">第三張牌點數 介於前兩張牌之間（不含相等）<br>➔ <span style="color:#2ecc71">中獎，獲得 2 倍</span>。</p></div>
+                <div class="rules-section"><div class="rules-title">射偏</div><p class="rules-desc">第三張牌點數 不在前兩張牌範圍內<br>➔ <span style="color:#e74c3c">失去全部賭金</span>。</p></div>
+                <div class="rules-section"><div class="rules-title">撞柱</div><p class="rules-desc">第三張牌點數 等於前兩張牌任一張<br>➔ <span style="color:#e67e22">通殺（本局直接輸）</span>。</p></div>
+                <div class="rules-section"><div class="rules-title">放棄</div><p class="rules-desc">開第三張牌前，可選擇放棄<br>➔ <span style="color:#3498db">退回 50% 賭金</span>。</p></div>
+                <div class="rules-section"><div class="rules-title">王牌守門員</div><p class="rules-desc">開局兩張牌 點數相同（對子）<br>➔ <span style="color:#c0392b">直接判輸，且不可放棄</span>。</p></div>
+                <div class="rules-section"><div class="rules-title">限紅</div><p class="rules-desc">單局最大投注額為目前獎池的 1/4。</p></div>
             `,
             win: "WINNER", lose: "YOU LOSE", hit_post: "HIT POST", bad_pair: "BAD PAIR", folded: "FOLDED",
             refund: "已退還", lost_all: "失去本金", pair_lose: "守門員通殺", limit_msg: "金額過高", bet_too_high: "投注額過高"
@@ -201,38 +193,16 @@
             rules: "Rules", pool: "Pool", max_bet: "Max Bet", note: "Note: Max bet is 1/4 of pool", connect: "Connect Wallet",
             status_wait: "Connect Wallet First", status_ready: "Ready", status_dealing: "Dealing...", status_playing: "In Progress",
             status_shooting: "Shooting...", status_folding: "Folding...", start: "Kick Off", shoot: "Shoot (Win 2x)", fold: "Fold (Refund 50%)",
-            warning: "Gambling involves risk. Please bet responsibly. Do not bet more than you can afford to lose. 18+ only.", result_card: "Result", play_again: "Play Again",
-            rules_title: "📜 Rules | Soccer Shootout", close: "Close",
-            balance: "Balance",
+            warning: "Gambling involves risk. Please bet responsibly. Do not bet more than you can afford to lose. 18+ only.", play_again: "Play Again",
+            rules_title: "📜 Rules | Soccer Shootout", close: "Close", balance: "Balance",
             rules_html: `
-                <div class="rules-section">
-                    <div class="rules-title">Kick Off</div>
-                    <p class="rules-desc">System deals two cards (1-13).</p>
-                </div>
-                <div class="rules-section">
-                    <div class="rules-title">Goal (Shoot)</div>
-                    <p class="rules-desc">3rd card is strictly BETWEEN the first two.<br>➔ <span style="color:#2ecc71">Win 2x Bet</span>.</p>
-                </div>
-                <div class="rules-section">
-                    <div class="rules-title">Miss</div>
-                    <p class="rules-desc">3rd card is OUTSIDE the range.<br>➔ <span style="color:#e74c3c">Lose Bet</span>.</p>
-                </div>
-                <div class="rules-section">
-                    <div class="rules-title">Hit Post</div>
-                    <p class="rules-desc">3rd card EQUALS either card.<br>➔ <span style="color:#e67e22">Instant Loss (House Wins)</span>.</p>
-                </div>
-                <div class="rules-section">
-                    <div class="rules-title">Fold</div>
-                    <p class="rules-desc">Fold before the 3rd card.<br>➔ <span style="color:#3498db">Refund 50% Bet</span>.</p>
-                </div>
-                <div class="rules-section">
-                    <div class="rules-title">Goalkeeper (Bad Pair)</div>
-                    <p class="rules-desc">First two cards are a PAIR.<br>➔ <span style="color:#c0392b">Instant Loss (Cannot Fold)</span>.</p>
-                </div>
-                <div class="rules-section">
-                    <div class="rules-title">Limit</div>
-                    <p class="rules-desc">Max bet is 1/4 of current pool.</p>
-                </div>
+                <div class="rules-section"><div class="rules-title">Kick Off</div><p class="rules-desc">System deals two cards (1-13).</p></div>
+                <div class="rules-section"><div class="rules-title">Goal (Shoot)</div><p class="rules-desc">3rd card is strictly BETWEEN the first two.<br>➔ <span style="color:#2ecc71">Win 2x Bet</span>.</p></div>
+                <div class="rules-section"><div class="rules-title">Miss</div><p class="rules-desc">3rd card is OUTSIDE the range.<br>➔ <span style="color:#e74c3c">Lose Bet</span>.</p></div>
+                <div class="rules-section"><div class="rules-title">Hit Post</div><p class="rules-desc">3rd card EQUALS either card.<br>➔ <span style="color:#e67e22">Instant Loss (House Wins)</span>.</p></div>
+                <div class="rules-section"><div class="rules-title">Fold</div><p class="rules-desc">Fold before the 3rd card.<br>➔ <span style="color:#3498db">Refund 50% Bet</span>.</p></div>
+                <div class="rules-section"><div class="rules-title">Goalkeeper (Bad Pair)</div><p class="rules-desc">First two cards are a PAIR.<br>➔ <span style="color:#c0392b">Instant Loss (Cannot Fold)</span>.</p></div>
+                <div class="rules-section"><div class="rules-title">Limit</div><p class="rules-desc">Max bet is 1/4 of current pool.</p></div>
             `,
             win: "GOAL!", lose: "MISSED", hit_post: "HIT POST", bad_pair: "BLOCKED", folded: "FOLDED",
             refund: "Refunded", lost_all: "Lost Bet", pair_lose: "Goalkeeper Blocked", limit_msg: "Too High", bet_too_high: "Bet Too High"
@@ -244,11 +214,15 @@
     let currentMaxBet = 0;
     let userAddress = ""; 
     let isModalOpen = false; 
+    
+    // 🔥 V22 新增：暫存當局的門柱牌
+    let currentC1 = "?";
+    let currentC2 = "?";
 
     function toggleLanguage() {
         currentLang = (currentLang === 'zh') ? 'en' : 'zh';
         updateUIText();
-        updateUserBalance(userAddress); // 更新語言後順便更新餘額文字
+        updateUserBalance(userAddress); 
     }
 
     function updateUIText() {
@@ -283,7 +257,7 @@
             contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
             listenToEvents();
             await updatePoolBalance();
-            await updateUserBalance(userAddress); // 🔥 初次連接更新餘額
+            await updateUserBalance(userAddress); 
             await checkGameState(userAddress);
             document.getElementById("status").innerText = getText('status_ready');
             startPolling();
@@ -298,7 +272,7 @@
                 dot.classList.add("ping-active");
                 setTimeout(() => dot.classList.remove("ping-active"), 500);
                 await checkGameState(userAddress);
-                await updateUserBalance(userAddress); // 🔥 輪詢時同步更新餘額
+                await updateUserBalance(userAddress); 
             }
             startPolling();
         }, randomDelay);
@@ -316,12 +290,11 @@
         } catch (e) {}
     }
 
-    // 🔥 新增：更新玩家餘額
     async function updateUserBalance(address) {
         if (!provider || !address) return;
         try {
             const balance = await provider.getBalance(address);
-            const formatted = parseFloat(ethers.formatEther(balance)).toFixed(4); // 顯示到小數點後4位
+            const formatted = parseFloat(ethers.formatEther(balance)).toFixed(4); 
             const label = getText('balance');
             document.getElementById("walletBalance").innerText = `${label}: ${formatted} CRO`;
         } catch (e) { console.error(e); }
@@ -346,8 +319,10 @@
         try {
             const game = await contract.games(address);
             if (game.state == 1) { 
-                document.getElementById("card1").innerText = game.card1;
-                document.getElementById("card2").innerText = game.card2;
+                currentC1 = game.card1; // 🔥 暫存牌面
+                currentC2 = game.card2;
+                document.getElementById("card1").innerText = currentC1;
+                document.getElementById("card2").innerText = currentC2;
                 document.getElementById("card3").innerText = "?";
                 document.getElementById("card3").classList.add("hidden");
                 toggleControls("game");
@@ -378,21 +353,46 @@
     }
 
     async function processReceipt(receipt) {
+        let gameStartedFound = false;
+        let gameEndedFound = false;
+        let c3_res = 0, result_res = "", payout_res = 0;
+
+        for (const log of receipt.logs) {
+            try {
+                const parsed = contract.interface.parseLog(log);
+                if (parsed.name === "GameStarted") {
+                    currentC1 = parsed.args.card1; // 🔥 更新暫存
+                    currentC2 = parsed.args.card2;
+                    document.getElementById("card1").innerText = currentC1;
+                    document.getElementById("card2").innerText = currentC2;
+                    gameStartedFound = true;
+                }
+            } catch (e) { }
+        }
+
         for (const log of receipt.logs) {
             try {
                 const parsed = contract.interface.parseLog(log);
                 if (parsed.name === "GameEnded") {
                     const { card3, result, payout } = parsed.args;
-                    showResult(result, card3, payout);
-                    return true;
+                    c3_res = card3;
+                    result_res = result;
+                    payout_res = payout;
+                    gameEndedFound = true;
                 }
             } catch (e) { }
+        }
+
+        if (gameEndedFound) {
+            showResult(result_res, c3_res, payout_res);
+            return true;
         }
         return false;
     }
 
     async function startGame() {
         try {
+            currentC1 = "?"; currentC2 = "?"; // 重置
             const amount = document.getElementById("betAmount").value;
             if (amount <= 0) return alert("Invalid Amount");
             if (amount > currentMaxBet) return alert(getText('bet_too_high'));
@@ -406,7 +406,7 @@
             setLoading(false);
             
             if (!handled && !isModalOpen) await checkGameState(userAddress);
-            updateUserBalance(userAddress); // 交易後更新餘額
+            updateUserBalance(userAddress); 
 
         } catch (error) {
             console.error(error);
@@ -447,29 +447,44 @@
         const modal = document.getElementById("resultModal");
         const title = document.getElementById("modalTitle");
         const score = document.getElementById("modalPayout");
-        const cardVal = document.getElementById("modalCardVal");
+        
+        // 🔥 V22：取得彈窗內的卡牌元素
+        const wrapper = document.getElementById("resultCardsWrapper");
+        const card1 = document.getElementById("modalCard1");
+        const card3 = document.getElementById("modalCard3");
+        const card2 = document.getElementById("modalCard2");
+        
         const payoutEth = ethers.formatEther(payout);
         
-        cardVal.innerText = c3;
-        cardVal.style.display = "flex";
+        // 預設狀態
+        wrapper.classList.remove("fold-mode");
+        wrapper.classList.remove("highlight-shot");
+        card1.innerText = currentC1;
+        card2.innerText = currentC2;
+        card3.innerText = c3;
 
         if (result === "WIN") {
             title.innerText = getText('win'); title.style.color = "#2ecc71";
             score.innerText = `+${payoutEth} CRO`; score.style.color = "#2ecc71";
+            wrapper.classList.add("highlight-shot"); // 🔥 加入射門特效
         } else if (result === "LOSE") {
             title.innerText = getText('lose'); title.style.color = "#e74c3c";
             score.innerText = getText('lost_all'); score.style.color = "#e74c3c";
+            wrapper.classList.add("highlight-shot");
         } else if (result === "HIT POST") {
             title.innerText = getText('hit_post'); title.style.color = "#e67e22";
             score.innerText = getText('lost_all'); score.style.color = "#e67e22";
+            wrapper.classList.add("highlight-shot");
         } else if (result === "BAD PAIR") {
             title.innerText = getText('bad_pair'); title.style.color = "#c0392b";
             score.innerText = getText('pair_lose'); score.style.color = "#c0392b";
-            cardVal.innerText = "X"; 
+            // 對子通殺時，中間顯示一樣的牌
+            card3.innerText = currentC1; 
         } else if (result === "FOLD") {
             title.innerText = getText('folded'); title.style.color = "#bdc3c7";
             score.innerText = `${getText('refund')} ${payoutEth} CRO`; score.style.color = "#2ecc71"; 
-            cardVal.innerText = "-"; 
+            card3.innerText = "-";
+            wrapper.classList.add("fold-mode"); // 🔥 放棄模式：隱藏兩側牌
         }
         modal.classList.add("active");
     }
@@ -501,7 +516,7 @@
         });
     }
 
-    updateUIText(); // Init
+    updateUIText(); 
 </script>
 
 </body>
