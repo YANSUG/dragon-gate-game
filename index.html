@@ -3,284 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taiwan Dragon Gate V25</title>
+    <title>Cronos 射龍門 (主網正式版)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     <style>
-        :root {
-            --bg-color: #1a202c;
-            --panel-bg: #2d3748;
-            --accent-gold: #f6ad55;
-            --accent-green: #48bb78;
-            --accent-red: #f56565;
-            --text-main: #edf2f7;
-            --text-sub: #a0aec0;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 480px;
-            background: var(--panel-bg);
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            position: relative;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* --- 頂部導航 --- */
-        .top-bar {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .nav-btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-main);
-            padding: 6px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.85em;
-            transition: all 0.2s;
-        }
+        :root { --bg-color: #1a202c; --panel-bg: #2d3748; --accent-gold: #f6ad55; --accent-green: #48bb78; --accent-red: #f56565; --text-main: #edf2f7; --text-sub: #a0aec0; }
+        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; margin: 0; padding: 20px; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .container { width: 100%; max-width: 480px; background: var(--panel-bg); padding: 25px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative; border: 1px solid rgba(255,255,255,0.1); }
+        .top-bar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; }
+        .nav-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85em; transition: all 0.2s; }
         .nav-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-1px); }
-
-        h1 {
-            color: var(--accent-gold);
-            margin: 0 0 20px 0;
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-shadow: 0 2px 10px rgba(246, 173, 85, 0.3);
-        }
-
-        /* --- 儀表板區域 --- */
-        .dashboard {
-            background: rgba(0,0,0,0.2);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 25px;
-            display: grid;
-            gap: 10px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .pool-section {
-            background: var(--accent-gold);
-            color: #2d3748;
-            padding: 8px;
-            border-radius: 8px;
-            font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9em;
-            color: var(--text-sub);
-            padding: 6px 10px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
-            align-items: center;
-        }
+        h1 { color: var(--accent-gold); margin: 0 0 20px 0; font-size: 28px; font-weight: 800; letter-spacing: 1px; text-shadow: 0 2px 10px rgba(246, 173, 85, 0.3); }
+        .dashboard { background: rgba(0,0,0,0.2); border-radius: 15px; padding: 15px; margin-bottom: 25px; display: grid; gap: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .pool-section { background: var(--accent-gold); color: #2d3748; padding: 8px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .info-row { display: flex; justify-content: space-between; font-size: 0.9em; color: var(--text-sub); padding: 6px 10px; background: rgba(255,255,255,0.05); border-radius: 8px; align-items: center; }
         .highlight-val { color: #63b3ed; font-weight: bold; }
-
-        /* --- 錢包區域 --- */
         .wallet-section { margin-bottom: 20px; }
-        .btn-connect {
-            background: linear-gradient(135deg, #4299e1, #3182ce);
-            color: white;
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.4);
-            transition: 0.2s;
-        }
+        .btn-connect { background: linear-gradient(135deg, #4299e1, #3182ce); color: white; width: 100%; padding: 12px; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(66, 153, 225, 0.4); transition: 0.2s; }
         .btn-connect:hover { filter: brightness(1.1); transform: translateY(-2px); }
         .wallet-addr { font-size: 0.8em; color: var(--text-sub); margin-top: 8px; word-break: break-all; }
         .wallet-bal { font-size: 0.9em; color: var(--accent-green); font-weight: bold; margin-top: 4px; }
-
-        /* --- 撲克牌區 --- */
-        .cards-area {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 25px 0;
-            height: 140px;
-        }
-        .card {
-            width: 90px;
-            height: 130px;
-            background: #edf2f7;
-            color: #2d3748;
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 42px;
-            font-weight: bold;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            border: 4px solid white;
-        }
-        .card.hidden {
-            background: #4a5568;
-            color: #718096;
-            border-color: #2d3748;
-            background-image: linear-gradient(135deg, #4a5568 25%, #2d3748 25%, #2d3748 50%, #4a5568 50%, #4a5568 75%, #2d3748 75%, #2d3748 100%);
-            background-size: 20px 20px;
-        }
-
-        #status {
-            min-height: 24px;
-            color: var(--accent-gold);
-            font-weight: bold;
-            margin-bottom: 15px;
-            letter-spacing: 1px;
-        }
-
-        /* --- 操控區 --- */
-        .control-group {
-            background: rgba(255,255,255,0.05);
-            padding: 20px;
-            border-radius: 15px;
-        }
-
-        .input-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 15px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            padding: 8px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .input-bet {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 20px;
-            width: 80px;
-            text-align: center;
-            font-weight: bold;
-        }
+        .cards-area { display: flex; justify-content: center; gap: 15px; margin: 25px 0; height: 140px; }
+        .card { width: 90px; height: 130px; background: #edf2f7; color: #2d3748; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 42px; font-weight: bold; box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: 4px solid white; }
+        .card.hidden { background: #4a5568; color: #718096; border-color: #2d3748; background-image: linear-gradient(135deg, #4a5568 25%, #2d3748 25%, #2d3748 50%, #4a5568 50%, #4a5568 75%, #2d3748 75%, #2d3748 100%); background-size: 20px 20px; }
+        #status { min-height: 24px; color: var(--accent-gold); font-weight: bold; margin-bottom: 15px; letter-spacing: 1px; }
+        .control-group { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; }
+        .input-wrapper { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 8px; width: fit-content; margin-left: auto; margin-right: auto; }
+        .input-bet { background: transparent; border: none; color: white; font-size: 20px; width: 80px; text-align: center; font-weight: bold; }
         .input-bet:focus { outline: none; }
         .currency-label { padding-right: 15px; color: var(--text-sub); font-weight: bold; }
-
         button { border: none; cursor: pointer; transition: 0.2s; }
         button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
-
-        .btn-action {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
+        .btn-action { width: 100%; padding: 14px; border-radius: 12px; font-size: 18px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-start { background: linear-gradient(135deg, #48bb78, #38a169); color: white; box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4); }
         .btn-shoot { background: linear-gradient(135deg, #ed8936, #dd6b20); color: white; box-shadow: 0 4px 15px rgba(237, 137, 54, 0.4); }
         .btn-fold { background: linear-gradient(135deg, #a0aec0, #718096); color: white; }
-
         .btn-action:hover { transform: translateY(-2px); filter: brightness(1.1); }
         .btn-action:active { transform: translateY(0); }
-
-        /* --- 彈窗通用 --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal-overlay.active { opacity: 1; pointer-events: all; }
-        
-        .modal-content {
-            background: var(--panel-bg);
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%; max-width: 400px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            max-height: 85vh; overflow-y: auto;
-        }
+        .modal-content { background: var(--panel-bg); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); max-height: 85vh; overflow-y: auto; }
         .modal-overlay.active .modal-content { transform: scale(1); }
-
-        /* --- 規則列表美化 --- */
         .rules-container { text-align: left; }
-        .rule-item {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
+        .rule-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .rule-item:last-child { border-bottom: none; }
         .rule-title { color: var(--accent-gold); font-weight: bold; font-size: 1.1em; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;}
         .rule-desc { color: var(--text-sub); font-size: 0.95em; line-height: 1.5; margin: 0; }
-
-        /* --- 記牌器表格 --- */
         .counter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
         .counter-item { background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px; text-align: center; }
         .counter-label { color: var(--text-sub); font-size: 0.8em; margin-bottom: 2px; }
         .counter-val { font-weight: bold; font-size: 1.2em; color: white; }
         .val-low { color: var(--accent-red); }
         .val-high { color: var(--accent-green); }
-
-        /* --- 結算卡牌 --- */
         .modal-cards-wrapper { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 25px 0; }
-        .modal-card { 
-            background: white; color: #2d3748; border-radius: 8px; 
-            display: flex; align-items: center; justify-content: center; font-weight: bold; 
-            border: 2px solid #cbd5e0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+        .modal-card { background: white; color: #2d3748; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #cbd5e0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .modal-card.side { width: 50px; height: 75px; font-size: 24px; opacity: 0.6; }
         .modal-card.main { width: 80px; height: 110px; font-size: 48px; z-index: 2; transition: 0.3s; }
-        
-        .highlight-shot .modal-card.main { 
-            border-color: var(--accent-gold); 
-            box-shadow: 0 0 30px rgba(246, 173, 85, 0.6); 
-            transform: scale(1.1); 
-        }
+        .highlight-shot .modal-card.main { border-color: var(--accent-gold); box-shadow: 0 0 30px rgba(246, 173, 85, 0.6); transform: scale(1.1); }
         .fold-mode .modal-card.side { display: none; }
-
-        .btn-close { 
-            background: var(--panel-bg); border: 1px solid rgba(255,255,255,0.2); 
-            color: white; width: 100%; padding: 12px; border-radius: 10px; margin-top: 10px; cursor: pointer;
-        }
+        .btn-close { background: var(--panel-bg); border: 1px solid rgba(255,255,255,0.2); color: white; width: 100%; padding: 12px; border-radius: 10px; margin-top: 10px; cursor: pointer; }
         .btn-close:hover { background: rgba(255,255,255,0.1); }
-
-        .footer {
-            margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;
-            font-size: 0.8em; color: #718096; line-height: 1.6;
-        }
-
+        .footer { margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; font-size: 0.8em; color: #718096; line-height: 1.6; }
         .loading { opacity: 0.6; pointer-events: none; }
         .ping-dot { width: 8px; height: 8px; background-color: var(--accent-green); border-radius: 50%; display: inline-block; margin-left: 10px; opacity: 0; transition: opacity 0.2s; box-shadow: 0 0 10px var(--accent-green); }
         .ping-active { opacity: 1; }
@@ -294,39 +76,31 @@
         <button class="nav-btn" onclick="openCounter()">📊 <span data-i18n="counter_btn">剩餘卡牌</span></button>
         <button class="nav-btn" onclick="toggleLanguage()">🌐 EN / 中文</button>
     </div>
-
-    <h1><span data-i18n="title">台灣射龍門</span> <span id="pingDot" class="ping-dot"></span></h1>
-    
+    <h1><span data-i18n="title">射龍門</span> <span id="pingDot" class="ping-dot"></span></h1>
     <div class="dashboard">
         <div class="pool-section">
             <span data-i18n="pool">獎池</span>: <span id="poolAmount">--</span> CRO
         </div>
-        
         <div class="info-row">
             <span>🎴 Shoe #<span id="shoeCount" class="highlight-val">1</span></span>
             <span><span data-i18n="remain">剩餘</span>: <span id="cardsRemaining" class="highlight-val">--</span> / 156</span>
         </div>
-        
         <div class="info-row">
             <span>⚠️ <span data-i18n="max_bet">最高投注</span></span>
             <span class="highlight-val"><span id="maxBet">--</span> CRO</span>
         </div>
     </div>
-
     <div class="wallet-section">
-        <button id="connectBtn" class="btn-connect" onclick="connectWallet()"><span data-i18n="connect">連接錢包</span></button>
+        <button id="connectBtn" class="btn-connect" onclick="connectWallet()"><span data-i18n="connect">連接錢包 (Cronos)</span></button>
         <div class="wallet-addr" id="walletAddress"></div>
         <div class="wallet-bal" id="walletBalance"></div>
     </div>
-
     <div class="cards-area">
         <div class="card" id="card1">?</div>
         <div class="card hidden" id="card3">?</div>
         <div class="card" id="card2">?</div>
     </div>
-
     <div id="status"><span data-i18n="status_wait">請先連接錢包</span></div>
-
     <div class="control-group">
         <div id="controls">
             <div class="input-wrapper">
@@ -337,7 +111,6 @@
                 ▶️ <span data-i18n="start">開始遊戲</span>
             </button>
         </div>
-
         <div id="gameControls" style="display:none;">
             <button class="btn-action btn-shoot" onclick="shoot()">
                 🔥 <span data-i18n="shoot">射門 (贏雙倍)</span>
@@ -347,9 +120,8 @@
             </button>
         </div>
     </div>
-
     <div class="footer">
-        ⚠️ <span data-i18n="warning">博弈有風險，請量力而為。切勿過度投注，以免傾家蕩產。未滿18歲請勿遊玩。</span>
+        ⚠️ <span data-i18n="warning">博弈有風險，請量力而為。本遊戲運行於 Cronos 主網，使用真實 CRO。</span>
     </div>
 </div>
 
@@ -357,13 +129,11 @@
     <div class="modal-content" style="text-align: center;">
         <div class="modal-title" id="modalTitle">WIN</div>
         <div class="modal-score" id="modalPayout">+2.0 CRO</div>
-        
         <div class="modal-cards-wrapper" id="resultCardsWrapper">
             <div class="modal-card side" id="modalCard1">?</div>
             <div class="modal-card main" id="modalCard3">?</div>
             <div class="modal-card side" id="modalCard2">?</div>
         </div>
-        
         <button class="btn-close" onclick="closeModal()"><span data-i18n="play_again">再來一局</span></button>
     </div>
 </div>
@@ -386,11 +156,9 @@
 </div>
 
 <script>
-    // =========================================
-    // 🔥 已自動填入你的 DragonGateV25 遊戲合約地址
-    const CONTRACT_ADDRESS = "0x327dF512D610BEa520591b346e1F8C82E171ffEB"; 
-    // =========================================
-
+    // 🔥 主網射龍門合約地址
+    const CONTRACT_ADDRESS = "0x21a07ea7E7070720846ED480C35c2B0ABFf75865"; 
+    
     const ABI = [
         "function startGame() external payable",
         "function shoot() external",
@@ -406,38 +174,24 @@
 
     const translations = {
         zh: {
-            title: "台灣射龍門", rules: "規則", pool: "獎池", max_bet: "最高投注", note: "註記：最大下注額為獎池的 1/4", connect: "連接錢包",
+            title: "射龍門", rules: "規則", pool: "獎池", max_bet: "最高投注", connect: "連接錢包 (Cronos)",
             status_wait: "請先連接錢包", status_ready: "準備就緒", status_dealing: "發牌中...", status_playing: "請選擇動作",
             status_shooting: "射門中...", status_folding: "放棄中...", start: "開始遊戲", shoot: "射門 (贏雙倍)", fold: "放棄 (退 50%)",
-            warning: "博弈有風險，請量力而為。切勿過度投注，以免傾家蕩產。未滿18歲請勿遊玩。", play_again: "再來一局",
+            warning: "博弈有風險，請量力而為。本遊戲運行於 Cronos 主網，使用真實 CRO。", play_again: "再來一局",
             rules_title: "📜 遊戲規則", close: "關閉", balance: "餘額", remain: "剩餘",
             counter_btn: "剩餘卡牌", counter_title: "📊 剩餘卡牌", counter_desc: "目前牌靴中剩餘的點數分佈 (3副牌)",
-            rules_html: `
-                <div class="rule-item"><div class="rule-title">🎮 遊戲機制</div><p class="rule-desc">使用 3 副牌 (156張)。當牌數剩餘一半時，系統會自動洗牌。</p></div>
-                <div class="rule-item"><div class="rule-title">🔥 射門 (Shoot)</div><p class="rule-desc">第三張牌點數 <span style="color:#48bb78">介於前兩張之間</span> (不含相等) <br>➔ 贏得 <strong>2倍</strong> 賭金。</p></div>
-                <div class="rule-item"><div class="rule-title">💥 撞柱 (Hit Post)</div><p class="rule-desc">第三張牌點數 <span style="color:#ed8936">等於</span> 前兩張任一張 <br>➔ 判輸，莊家通殺。</p></div>
-                <div class="rule-item"><div class="rule-title">😭 射偏 (Miss)</div><p class="rule-desc">第三張牌點數 <span style="color:#f56565">不在</span> 範圍內 <br>➔ 失去本金。</p></div>
-                <div class="rule-item"><div class="rule-title">🏳️ 放棄 (Fold)</div><p class="rule-desc">覺得贏面不大？開第三張牌前可放棄 <br>➔ 退回 <strong>50%</strong> 本金。</p></div>
-                <div class="rule-item"><div class="rule-title">☠️ 王牌守門員 (Bad Pair)</div><p class="rule-desc">開局拿到兩張一樣的牌 (對子) <br>➔ <span style="color:#f56565">直接判輸</span>，不可放棄。</p></div>
-            `,
+            rules_html: `<div class="rule-item"><div class="rule-title">🎮 機制</div><p class="rule-desc">使用 3 副牌 (156張)。剩餘一半時自動洗牌。</p></div><div class="rule-item"><div class="rule-title">🔥 射門</div><p class="rule-desc">第三張牌點數 <span style="color:#48bb78">介於前兩張之間</span> ➔ 贏 <strong>2倍</strong>。</p></div><div class="rule-item"><div class="rule-title">💥 撞柱</div><p class="rule-desc">第三張牌 <span style="color:#ed8936">等於</span> 任一張 ➔ 輸。</p></div><div class="rule-item"><div class="rule-title">🏳️ 放棄</div><p class="rule-desc">開第三張牌前可放棄 ➔ 退 <strong>50%</strong>。</p></div>`,
             win: "YOU WIN!", lose: "YOU LOSE", hit_post: "HIT POST", bad_pair: "BAD PAIR", folded: "FOLDED",
             refund: "已退還", lost_all: "失去本金", pair_lose: "對子通殺", limit_msg: "金額過高", bet_too_high: "投注額過高"
         },
         en: {
-            title: "Soccer Shootout", rules: "Rules", pool: "Pool", max_bet: "Max Bet", note: "Note: Max bet is 1/4 of pool", connect: "Connect Wallet",
+            title: "Dragon Gate", rules: "Rules", pool: "Pool", max_bet: "Max Bet", connect: "Connect (Cronos)",
             status_wait: "Connect Wallet", status_ready: "Ready", status_dealing: "Dealing...", status_playing: "Choose Action",
             status_shooting: "Shooting...", status_folding: "Folding...", start: "Kick Off", shoot: "Shoot (Win 2x)", fold: "Fold (Refund 50%)",
-            warning: "Gambling involves risk. Bet responsibly. 18+ only.", play_again: "Play Again",
+            warning: "Gambling involves risk. This game runs on Cronos Mainnet using real CRO.", play_again: "Play Again",
             rules_title: "📜 Rules", close: "Close", balance: "Balance", remain: "Left",
             counter_btn: "Cards Left", counter_title: "📊 Cards Left", counter_desc: "Remaining cards in shoe (3 Decks)",
-            rules_html: `
-                <div class="rule-item"><div class="rule-title">🎮 Mechanics</div><p class="rule-desc">Uses 3 Decks (156 cards). Auto-reshuffles when 50% remain.</p></div>
-                <div class="rule-item"><div class="rule-title">🔥 Shoot</div><p class="rule-desc">3rd card is <span style="color:#48bb78">BETWEEN</span> the first two cards <br>➔ Win <strong>2x</strong> Bet.</p></div>
-                <div class="rule-item"><div class="rule-title">💥 Hit Post</div><p class="rule-desc">3rd card <span style="color:#ed8936">EQUALS</span> either card <br>➔ Instant Loss.</p></div>
-                <div class="rule-item"><div class="rule-title">😭 Miss</div><p class="rule-desc">3rd card is <span style="color:#f56565">OUTSIDE</span> the range <br>➔ Lose Bet.</p></div>
-                <div class="rule-item"><div class="rule-title">🏳️ Fold</div><p class="rule-desc">Range too tight? Fold before shooting <br>➔ Refund <strong>50%</strong>.</p></div>
-                <div class="rule-item"><div class="rule-title">☠️ Bad Pair</div><p class="rule-desc">Initial two cards are a PAIR <br>➔ <span style="color:#f56565">Instant Loss</span> (Cannot fold).</p></div>
-            `,
+            rules_html: `<div class="rule-item"><div class="rule-title">🎮 Mechanics</div><p class="rule-desc">Uses 3 Decks. Reshuffles at 50%.</p></div><div class="rule-item"><div class="rule-title">🔥 Shoot</div><p class="rule-desc">3rd card is <span style="color:#48bb78">BETWEEN</span> the first two ➔ Win <strong>2x</strong>.</p></div><div class="rule-item"><div class="rule-title">💥 Hit Post</div><p class="rule-desc">3rd card <span style="color:#ed8936">EQUALS</span> either card ➔ Lose.</p></div><div class="rule-item"><div class="rule-title">🏳️ Fold</div><p class="rule-desc">Fold before shooting ➔ Refund <strong>50%</strong>.</p></div>`,
             win: "GOAL!", lose: "MISSED", hit_post: "HIT POST", bad_pair: "BLOCKED", folded: "FOLDED",
             refund: "Refunded", lost_all: "Lost Bet", pair_lose: "Goalkeeper Blocked", limit_msg: "Too High", bet_too_high: "Bet Too High"
         }
@@ -451,30 +205,17 @@
     let currentC1 = "?", currentC2 = "?";
     let caughtPairValue = null;
 
-    function toggleLanguage() {
-        currentLang = (currentLang === 'zh') ? 'en' : 'zh';
-        updateUIText();
-        updateUserBalance(userAddress); 
-    }
-
+    function toggleLanguage() { currentLang = (currentLang === 'zh') ? 'en' : 'zh'; updateUIText(); updateUserBalance(userAddress); }
     function updateUIText() {
         const lang = translations[currentLang];
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (lang[key]) el.innerHTML = lang[key]; 
-        });
+        document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (lang[key]) el.innerHTML = lang[key]; });
         document.getElementById('rulesContent').innerHTML = lang.rules_html;
         checkLimit(); 
     }
-
     function getText(key) { return translations[currentLang][key]; }
     function openRules() { document.getElementById('rulesModal').classList.add('active'); }
     function closeRules() { document.getElementById('rulesModal').classList.remove('active'); }
-    
-    async function openCounter() { 
-        document.getElementById('counterModal').classList.add('active'); 
-        await updateCounterData(); 
-    }
+    async function openCounter() { document.getElementById('counterModal').classList.add('active'); await updateCounterData(); }
     function closeCounter() { document.getElementById('counterModal').classList.remove('active'); }
 
     async function updateCounterData() {
@@ -482,18 +223,11 @@
         try {
             document.getElementById("counterGrid").innerHTML = "Loading...";
             const cards = await contract.getRemainingCards();
-            const counts = {};
-            for(let i=1; i<=13; i++) counts[i] = 0;
-            for(const card of cards) {
-                const val = Number(card);
-                if(counts[val] !== undefined) counts[val]++;
-            }
-            let html = "";
-            const labels = {1:"A", 11:"J", 12:"Q", 13:"K"};
+            const counts = {}; for(let i=1; i<=13; i++) counts[i] = 0;
+            for(const card of cards) { const val = Number(card); if(counts[val] !== undefined) counts[val]++; }
+            let html = ""; const labels = {1:"A", 11:"J", 12:"Q", 13:"K"};
             for(let i=1; i<=13; i++) {
-                const label = labels[i] || i;
-                const count = counts[i];
-                const colorClass = count <= 4 ? "val-low" : "val-high";
+                const label = labels[i] || i; const count = counts[i]; const colorClass = count <= 4 ? "val-low" : "val-high";
                 html += `<div class="counter-item"><div class="counter-label">${label}</div><div class="counter-val ${colorClass}">${count}</div></div>`;
             }
             document.getElementById("counterGrid").innerHTML = html;
@@ -507,8 +241,8 @@
             signer = await provider.getSigner();
             userAddress = await signer.getAddress(); 
             const network = await provider.getNetwork();
-            // 支援 Cronos Mainnet (25) 與 Testnet (338)
-            if (network.chainId !== 338n && network.chainId !== 25n) return alert("Please switch to Cronos Mainnet (25) or Testnet (338)");
+            // 25 is Cronos Mainnet
+            if (network.chainId !== 25n) return alert("Please switch to Cronos Mainnet (Chain ID 25)");
 
             document.getElementById("connectBtn").style.display = "none";
             document.getElementById("walletAddress").innerText = userAddress.substring(0,6) + "..." + userAddress.substring(38);
@@ -529,11 +263,8 @@
         setTimeout(async () => {
             if (contract && userAddress && !isModalOpen) {
                 const dot = document.getElementById("pingDot");
-                dot.classList.add("ping-active");
-                setTimeout(() => dot.classList.remove("ping-active"), 500);
-                await checkGameState(userAddress);
-                await updateGameInfo(); 
-                await updateUserBalance(userAddress); 
+                dot.classList.add("ping-active"); setTimeout(() => dot.classList.remove("ping-active"), 500);
+                await checkGameState(userAddress); await updateGameInfo(); await updateUserBalance(userAddress); 
             }
             startPolling();
         }, randomDelay);
@@ -542,13 +273,11 @@
     async function updateGameInfo() {
         if(!contract) return;
         try {
-            // 注意：這裡是呼叫遊戲合約的 getContractBalance，它會幫忙去查 Bankroll
             const balance = await contract.getContractBalance(); 
             const balanceEth = parseFloat(ethers.formatEther(balance));
             document.getElementById("poolAmount").innerText = balanceEth.toFixed(2);
             currentMaxBet = balanceEth / 4;
             document.getElementById("maxBet").innerText = currentMaxBet.toFixed(2);
-
             const deckStatus = await contract.getDeckStatus();
             document.getElementById("cardsRemaining").innerText = deckStatus.remaining;
             document.getElementById("shoeCount").innerText = deckStatus.currentShoe;
@@ -560,7 +289,7 @@
         if (!provider || !address) return;
         try {
             const balance = await provider.getBalance(address);
-            const formatted = parseFloat(ethers.formatEther(balance)).toFixed(4); 
+            const formatted = parseFloat(ethers.formatEther(balance)).toFixed(2); 
             const label = getText('balance');
             document.getElementById("walletBalance").innerText = `${label}: ${formatted} CRO`;
         } catch (e) { console.error(e); }
@@ -571,13 +300,8 @@
         const btn = document.getElementById("startBtn");
         const container = document.querySelector('.container');
         if (container.classList.contains("loading")) return;
-        if (inputVal > currentMaxBet) {
-            btn.disabled = true;
-            btn.innerText = getText('limit_msg');
-        } else if (contract) { 
-            btn.disabled = false;
-            btn.innerHTML = "▶️ " + getText('start');
-        }
+        if (inputVal > currentMaxBet) { btn.disabled = true; btn.innerText = getText('limit_msg'); } 
+        else if (contract) { btn.disabled = false; btn.innerHTML = "▶️ " + getText('start'); }
     }
 
     async function checkGameState(address) {
@@ -585,74 +309,51 @@
         try {
             const game = await contract.games(address);
             if (game.state == 1) { 
-                currentC1 = game.card1;
-                currentC2 = game.card2;
+                currentC1 = game.card1; currentC2 = game.card2;
                 document.getElementById("card1").innerText = currentC1;
                 document.getElementById("card2").innerText = currentC2;
                 document.getElementById("card3").innerText = "?";
                 document.getElementById("card3").classList.add("hidden");
                 toggleControls("game");
-                if (!document.querySelector('.container').classList.contains("loading")) {
-                   document.getElementById("status").innerText = getText('status_playing');
-                }
-            } else {
-                toggleControls("start");
-            }
+                if (!document.querySelector('.container').classList.contains("loading")) { document.getElementById("status").innerText = getText('status_playing'); }
+            } else { toggleControls("start"); }
         } catch (e) {}
     }
 
     function toggleControls(mode) {
-        if (mode === "game") {
-            document.getElementById("controls").style.display = "none";
-            document.getElementById("gameControls").style.display = "block";
-        } else {
-            document.getElementById("controls").style.display = "block";
-            document.getElementById("gameControls").style.display = "none";
-        }
+        if (mode === "game") { document.getElementById("controls").style.display = "none"; document.getElementById("gameControls").style.display = "block"; } 
+        else { document.getElementById("controls").style.display = "block"; document.getElementById("gameControls").style.display = "none"; }
     }
 
     function setLoading(isLoading) {
         const container = document.querySelector('.container');
-        if (isLoading) container.classList.add("loading");
-        else container.classList.remove("loading");
+        if (isLoading) container.classList.add("loading"); else container.classList.remove("loading");
     }
 
     async function processReceipt(receipt) {
-        let gameStartedFound = false;
-        let gameEndedFound = false;
-        let c3_res = 0, result_res = "", payout_res = 0;
-
+        let gameStartedFound = false; let gameEndedFound = false; let c3_res = 0, result_res = "", payout_res = 0;
         for (const log of receipt.logs) {
             try {
                 const parsed = contract.interface.parseLog(log);
                 if (parsed.name === "GameStarted") {
-                    currentC1 = parsed.args.card1;
-                    currentC2 = parsed.args.card2;
-                    document.getElementById("card1").innerText = currentC1;
-                    document.getElementById("card2").innerText = currentC2;
+                    currentC1 = parsed.args.card1; currentC2 = parsed.args.card2;
+                    document.getElementById("card1").innerText = currentC1; document.getElementById("card2").innerText = currentC2;
                     if (currentC1 == currentC2) caughtPairValue = currentC1; 
                     gameStartedFound = true;
                 }
             } catch (e) { }
         }
-
         for (const log of receipt.logs) {
             try {
                 const parsed = contract.interface.parseLog(log);
                 if (parsed.name === "GameEnded") {
                     const { card3, result, payout } = parsed.args;
-                    c3_res = card3;
-                    result_res = result;
-                    payout_res = payout;
+                    c3_res = card3; result_res = result; payout_res = payout;
                     gameEndedFound = true;
                 }
             } catch (e) { }
         }
-
-        if (gameEndedFound) {
-            showResult(result_res, c3_res, payout_res);
-            return true;
-        }
+        if (gameEndedFound) { showResult(result_res, c3_res, payout_res); return true; }
         return false;
     }
 
@@ -662,127 +363,69 @@
             const amount = document.getElementById("betAmount").value;
             if (amount <= 0) return alert("Invalid Amount");
             if (amount > currentMaxBet) return alert(getText('bet_too_high'));
-
-            setLoading(true);
-            document.getElementById("status").innerText = getText('status_dealing');
+            setLoading(true); document.getElementById("status").innerText = getText('status_dealing');
             const tx = await contract.startGame({ value: ethers.parseEther(amount) });
             const receipt = await tx.wait(); 
-            
             const handled = await processReceipt(receipt);
             setLoading(false);
-            
             if (!handled && !isModalOpen) await checkGameState(userAddress);
-            updateUserBalance(userAddress); 
-            updateGameInfo();
-
-        } catch (error) {
-            console.error(error);
-            setLoading(false);
-            if(error.reason && error.reason.includes("Bet too high")) alert(getText('bet_too_high'));
-        }
+            updateUserBalance(userAddress); updateGameInfo();
+        } catch (error) { console.error(error); setLoading(false); if(error.reason && error.reason.includes("Bet too high")) alert(getText('bet_too_high')); }
     }
 
     async function shoot() {
         try {
-            setLoading(true);
-            document.getElementById("status").innerText = getText('status_shooting');
+            setLoading(true); document.getElementById("status").innerText = getText('status_shooting');
             const tx = await contract.shoot();
             const receipt = await tx.wait();
             await processReceipt(receipt);
-            setLoading(false);
-            updateUserBalance(userAddress);
-            updateGameInfo();
+            setLoading(false); updateUserBalance(userAddress); updateGameInfo();
         } catch (error) { setLoading(false); alert(error.message); }
     }
 
     async function fold() {
         try {
-            setLoading(true);
-            document.getElementById("status").innerText = getText('status_folding');
+            setLoading(true); document.getElementById("status").innerText = getText('status_folding');
             const tx = await contract.fold();
             const receipt = await tx.wait();
             await processReceipt(receipt);
-            setLoading(false);
-            updateUserBalance(userAddress);
-            updateGameInfo();
+            setLoading(false); updateUserBalance(userAddress); updateGameInfo();
         } catch (error) { setLoading(false); alert(error.message); }
     }
 
     function showResult(result, c3, payout) {
         if(isModalOpen) return; 
-        isModalOpen = true; 
-        setLoading(false);
-
-        const modal = document.getElementById("resultModal");
-        const title = document.getElementById("modalTitle");
-        const score = document.getElementById("modalPayout");
-        const wrapper = document.getElementById("resultCardsWrapper");
-        const card1 = document.getElementById("modalCard1");
-        const card3 = document.getElementById("modalCard3");
-        const card2 = document.getElementById("modalCard2");
-        const payoutEth = ethers.formatEther(payout);
-        
-        wrapper.classList.remove("fold-mode");
-        wrapper.classList.remove("highlight-shot");
-        card1.innerText = currentC1;
-        card2.innerText = currentC2;
-        card3.innerText = c3;
-
-        if (result === "WIN") {
-            title.innerText = getText('win'); title.style.color = "#48bb78";
-            score.innerText = `+${payoutEth} CRO`; score.style.color = "#48bb78";
-            wrapper.classList.add("highlight-shot"); 
-        } else if (result === "LOSE") {
-            title.innerText = getText('lose'); title.style.color = "#f56565";
-            score.innerText = getText('lost_all'); score.style.color = "#f56565";
-            wrapper.classList.add("highlight-shot");
-        } else if (result === "HIT POST") {
-            title.innerText = getText('hit_post'); title.style.color = "#ed8936";
-            score.innerText = getText('lost_all'); score.style.color = "#ed8936";
-            wrapper.classList.add("highlight-shot");
-        } else if (result === "BAD PAIR") {
-            title.innerText = getText('bad_pair'); title.style.color = "#f56565";
-            score.innerText = getText('pair_lose'); score.style.color = "#f56565";
-            card3.innerText = caughtPairValue ? caughtPairValue : currentC1; 
-        } else if (result === "FOLD") {
-            title.innerText = getText('folded'); title.style.color = "#a0aec0";
-            score.innerText = `${getText('refund')} ${payoutEth} CRO`; score.style.color = "#48bb78"; 
-            card3.innerText = "-";
-            wrapper.classList.add("fold-mode"); 
-        }
+        isModalOpen = true; setLoading(false);
+        const modal = document.getElementById("resultModal"); const title = document.getElementById("modalTitle");
+        const score = document.getElementById("modalPayout"); const wrapper = document.getElementById("resultCardsWrapper");
+        const card1 = document.getElementById("modalCard1"); const card3 = document.getElementById("modalCard3");
+        const card2 = document.getElementById("modalCard2"); const payoutEth = ethers.formatEther(payout);
+        wrapper.classList.remove("fold-mode"); wrapper.classList.remove("highlight-shot");
+        card1.innerText = currentC1; card2.innerText = currentC2; card3.innerText = c3;
+        if (result === "WIN") { title.innerText = getText('win'); title.style.color = "#48bb78"; score.innerText = `+${payoutEth} CRO`; score.style.color = "#48bb78"; wrapper.classList.add("highlight-shot"); } 
+        else if (result === "LOSE") { title.innerText = getText('lose'); title.style.color = "#f56565"; score.innerText = getText('lost_all'); score.style.color = "#f56565"; wrapper.classList.add("highlight-shot"); } 
+        else if (result === "HIT POST") { title.innerText = getText('hit_post'); title.style.color = "#ed8936"; score.innerText = getText('lost_all'); score.style.color = "#ed8936"; wrapper.classList.add("highlight-shot"); } 
+        else if (result === "BAD PAIR") { title.innerText = getText('bad_pair'); title.style.color = "#f56565"; score.innerText = getText('pair_lose'); score.style.color = "#f56565"; card3.innerText = caughtPairValue ? caughtPairValue : currentC1; } 
+        else if (result === "FOLD") { title.innerText = getText('folded'); title.style.color = "#a0aec0"; score.innerText = `${getText('refund')} ${payoutEth} CRO`; score.style.color = "#48bb78"; card3.innerText = "-"; wrapper.classList.add("fold-mode"); }
         modal.classList.add("active");
     }
 
     function closeModal() {
-        isModalOpen = false; 
-        document.getElementById("resultModal").classList.remove("active");
-        document.getElementById("card1").innerText = "?"; 
-        document.getElementById("card2").innerText = "?";
-        document.getElementById("card3").innerText = "?"; 
-        document.getElementById("card3").classList.add("hidden");
+        isModalOpen = false; document.getElementById("resultModal").classList.remove("active");
+        document.getElementById("card1").innerText = "?"; document.getElementById("card2").innerText = "?";
+        document.getElementById("card3").innerText = "?"; document.getElementById("card3").classList.add("hidden");
         document.getElementById("status").innerText = getText('status_ready');
-        toggleControls("start");
-        updateGameInfo(); 
+        toggleControls("start"); updateGameInfo(); 
     }
 
     function listenToEvents() {
-        contract.on("GameStarted", (player, c1, c2, bet) => {
-            if(player !== signer.address) return;
-            document.getElementById("card1").innerText = c1;
-            document.getElementById("card2").innerText = c2;
-            setLoading(false);
-        });
-        contract.on("GameEnded", (player, c3, result, payout) => {
-            if(player !== signer.address) return;
-            if(!isModalOpen) showResult(result, c3, payout);
-        });
-        contract.on("DeckShuffled", (ts, shoeId) => {
-            updateGameInfo();
-        });
+        contract.on("GameStarted", (player, c1, c2, bet) => { if(player !== signer.address) return; document.getElementById("card1").innerText = c1; document.getElementById("card2").innerText = c2; setLoading(false); });
+        contract.on("GameEnded", (player, c3, result, payout) => { if(player !== signer.address) return; if(!isModalOpen) showResult(result, c3, payout); });
+        contract.on("DeckShuffled", (ts, shoeId) => { updateGameInfo(); });
     }
 
     updateUIText(); 
 </script>
-
 </body>
 </html>
+
